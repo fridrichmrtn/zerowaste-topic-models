@@ -250,11 +250,10 @@ Lastly, we check on data-integrity of the export in terms on the retweets & quot
 ## Next steps
 
 **General**
-
- * What is primary and secondary goal of the project?
- * Are there any prior hypothesis to the problem?
- * How do we define relevant tweet? What kind of covariates interest us?
- * Is there a timeline/deadline?
+ 
+ * Re-iterate on the project scope & timeline.
+ * Re-iterate on the priors.
+ * Determine tweet relevance.
 
 **Dataset**
 
