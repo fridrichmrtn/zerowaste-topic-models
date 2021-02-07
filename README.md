@@ -5,8 +5,8 @@ The project's main scope is to examine, describe & understand exciting latent fa
 ## Links
 
 Docs>  
- * [preliminary_report.md](//doc//preliminary_report.md)
- * [textual_report.md](//doc//textual_report.md)
+ * [preliminary_report.md](/doc/preliminary_report.md)
+ * [textual_report.md](/doc/textual_report.md)
  
 ## Acknowledgments
 
