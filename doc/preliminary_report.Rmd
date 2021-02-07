@@ -1,5 +1,5 @@
 ---
-title: "#zerowaste tweets"
+title: "#zerowaste tweets - preliminary report"
 output:
   github_document
 ---
@@ -144,7 +144,7 @@ hist(n_tags,
      cex.lab=1.3)
 ```
 
-From the left plot, we can see that approx. Half of the tweets are shorter than 140 chars; however, some extended texts are almost 1000 char long. The middle shows that 75 % of the tweets consist of 25 words or less. Similarly, the right plot displays that 75 % of the tweets employ less than four hashtags. We recommend utilizing both texts & tweets to achieve acceptable performance in downstream steps considering the frequency distributions.
+From the left plot, we can see that approx. half of the tweets are shorter than 140 chars; however, some extended texts are almost 1000 char long. The middle plot shows that 75 % of the tweets consist of 25 words or less. Similarly, the right plot displays that 75 % of the tweets employ less than four hashtags. We recommend utilizing both texts & tweets to achieve acceptable performance in downstream steps considering the frequency distributions.
 
 ```{r tok_tag_histograms, fig.width=15, fig.height=6}
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
@@ -166,7 +166,7 @@ In the first plot (left), we can see the 20 most popular hashtags; most of the t
 round(sort(n_langs, decreasing=T)[1:10]/nrow(raw_tweets),3)*100
 ```
 
-Most of the observed texts are written in English. Thus, only half of the data can be utilized as intended (i.e., tags + texts hybrid topic model).
+Most of the observed texts are written in English. Thus, only ~ 70 % of the data can be utilized as intended (i.e., tags + texts hybrid topic model).
 
 ```{r year_hour_histograms, fig.width=15, fig.height=6}
 par(mfrow=c(1,2))
