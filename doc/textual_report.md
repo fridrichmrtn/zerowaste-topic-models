@@ -27,20 +27,6 @@ present the overall structure of the dataset.
 
 ``` r
 library(tidyverse)
-```
-
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
-
-    ## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
-    ## ✓ tibble  3.0.6     ✓ dplyr   1.0.4
-    ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
-    ## ✓ readr   1.4.0     ✓ forcats 0.5.1
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 data_dir = "..//data//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
@@ -126,6 +112,9 @@ tweets$tid = 1:nrow(tweets)
 
 ## Exploratory data analysis
 
+Within this section, we extract & examine selected properties of the
+tweets considering the texts.
+
 ### Basic characteristics
 
 ``` r
@@ -146,24 +135,24 @@ par(mfrow=c(1,3))
 hist(n_chars,
      main="no of characters per tweet",
      xlab="character count",
-     cex.main=1.3,
-     cex.axis=1.3,
-     cex.lab=1.3)
+     cex.main=1.4,
+     cex.axis=1.4,
+     cex.lab=1.4)
 hist(n_tokens,
      main="no of tokens per tweet",
      xlab="token count",
-     cex.main=1.3,
-     cex.axis=1.3,
-     cex.lab=1.3)
+     cex.main=1.4,
+     cex.axis=1.4,
+     cex.lab=1.4)
 hist(n_tags,
      main="no of tags per tweet",
      xlab="tag count",
-     cex.main=1.3,
-     cex.axis=1.3,
-     cex.lab=1.3)
+     cex.main=1.4,
+     cex.axis=1.4,
+     cex.lab=1.4)
 ```
 
-![](textual_report_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](textual_report_files/figure-gfm/char_tok_tag_histograms-1.png)<!-- -->
 
 We can see that processed tweets are shorter than the original ones from
 the left plot, with a median length \~ 130 chars. The tokens per tweet
@@ -200,32 +189,33 @@ par(mar=c(4,16,2,2))
 plot_grams(toks,1)
 ```
 
-![](textual_report_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](textual_report_files/figure-gfm/gram_bars-1.png)<!-- -->
 
 ``` r
 plot_grams(toks,2)
 ```
 
-![](textual_report_files/figure-gfm/unnamed-chunk-10-2.png)<!-- -->
+![](textual_report_files/figure-gfm/gram_bars-2.png)<!-- -->
 
 ``` r
 plot_grams(toks,3)
 ```
 
-![](textual_report_files/figure-gfm/unnamed-chunk-10-3.png)<!-- --> In
-the left plot, we see that the most common uni-gram is the `#zerowaste`
-token, followed by a couple of tokens related to common sentence
-composition. The bi-gram plot shows a similar story; however, we see the
-locality aspect represented by `#unitedkingdom_#zerowaste`, or
-`#london_#unitedkingdom` popping out. The tri-gram plot demonstrates the
-importance of Twitter entities such as retweet tokens, tags, or user
+![](textual_report_files/figure-gfm/gram_bars-3.png)<!-- -->
+
+In the left plot, we see that the most common uni-gram is the
+`#zerowaste` token, followed by a couple of tokens related to common
+sentence composition. The bi-gram plot shows a similar story; however,
+we see the locality aspect represented by `#unitedkingdom_#zerowaste`,
+or `#london_#unitedkingdom` popping out. The tri-gram plot demonstrates
+the importance of Twitter entities such as retweet tokens, tags, or user
 handles.
 
 ### Universal parts of speech
 
 First of all, we attempt to load/download the `udpipe`’s `english-ewt`
 model for text parsing (see the [performance
-details](https://ufal.mff.cuni.cz/udpipe/1/models%5D). Consequently, we
+details](https://ufal.mff.cuni.cz/udpipe/1/models%5D)). Consequently, we
 use the model to parse the tweets and annotate the tokens with relevant
 metadata.
 
@@ -266,50 +256,43 @@ barplot(log10(tail(sort(
   xlab="log10 count")
 ```
 
-<img src="textual_report_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
+<img src="textual_report_files/figure-gfm/upos_bars-1.png" style="display: block; margin: auto;" />
 
 We see that the most common & exciting UPOS are `NOUN`, `VERB`, and
-`ADJ`. The most common tokens for each part type are depicted in the
-plots below.
+`ADJ`. The frequent tokens per each part of the speech type are depicted
+below.
 
 ``` r
-par(mar=c(4,6,2,2))
+par(mfrow=c(1,3), mar=c(4,8,2,2))
 barplot(log10(tail(sort(
   table(annotated_tweets$lemma[annotated_tweets$upos=="NOUN"])),20)),
   las=2, horiz=T,
-  cex.names=0.8, cex.lab=0.8,
-  cex.main=0.8, cex=0.8,    
+  cex.names=1.4, cex.lab=1.4,
+  cex.main=1.4, cex=1.4,    
   main="Nouns - Freq occurence", 
   xlab="log10 count")
-```
-
-<img src="textual_report_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
-
-``` r
 barplot(log10(tail(sort(
   table(annotated_tweets$lemma[annotated_tweets$upos=="VERB"])),20)),
   las=2, horiz=T,
-  cex.names=0.8, cex.lab=0.8,
-  cex.main=0.8, cex=0.8,    
+  cex.names=1.4, cex.lab=1.4,
+  cex.main=1.4, cex=1.4,         
   main="Verbs - Freq occurence", 
   xlab="log10 count")
-```
-
-<img src="textual_report_files/figure-gfm/unnamed-chunk-17-2.png" style="display: block; margin: auto;" />
-
-``` r
 barplot(log10(tail(sort(
   table(annotated_tweets$lemma[annotated_tweets$upos=="ADJ"])),20)),
   las=2, horiz=T,
-  cex.names=0.8, cex.lab=0.8,
-  cex.main=0.8, cex=0.8,    
+  cex.names=1.4, cex.lab=1.4,
+  cex.main=1.4, cex=1.4,     
   main="Adjectives - Freq occurence", 
   xlab="log10 count")
 ```
 
-<img src="textual_report_files/figure-gfm/unnamed-chunk-17-3.png" style="display: block; margin: auto;" />
+![](textual_report_files/figure-gfm/noun_verb_adj_bars-1.png)<!-- -->
 
-SOME COMMENTARY
+From bar plots above, one can observe creative use of tags across
+depicted UPOS (i.e., within the sentence). Interestingly, `rt` token is
+still prevalent. The results are aligned with our expectation. However,
+some of the tags such as `amp` would need a bit more exploration.
 
 ### Keywords
 
@@ -356,21 +339,35 @@ par(mar=c(4,14,2,2))
 plot_keys(rake_stats,"rake")
 ```
 
-<img src="textual_report_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
+<img src="textual_report_files/figure-gfm/rake_bars-1.png" style="display: block; margin: auto;" />
+
+The chart above correctly captures some of the key aspects of
+\#zerowaste tweets such as `reusable #skipstraw` or
+`animalactivism #ditchplastic`. Also replies/retweets to
+`@tradomglobal @kashthefuturist` accounts appear. On the other hand, the
+results illustrate the further need for careful text processing &
+filtering (hyphens in `single -use` or `realitylink gt gt gt`).
 
 ``` r
 par(mar=c(4,14,2,2))
 plot_keys(pmi_stats,"pmi", "PMI Collocation")
 ```
 
-<img src="textual_report_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
+<img src="textual_report_files/figure-gfm/pmi_bars-1.png" style="display: block; margin: auto;" />
+PMI Collocation shows us mostly links between user accounts and obscure
+tokens.
 
 ``` r
 par(mar=c(4,14,2,2))
 plot_keys(snp_stats,"freq", "noun phrases with coordination conjuction")
 ```
 
-<img src="textual_report_files/figure-gfm/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
+<img src="textual_report_files/figure-gfm/coco_bars-1.png" style="display: block; margin: auto;" />
+Noun phrases with coordination conjunction reveals exciting higher-level
+latent factors of the \#zerowaste such as veganism/food -
+`#gocrueltyfree #govegan`, `food waste`, shopping - `plastic bag`,
+`grocery store`, and location - `london #unitedkingdom`. Again, some
+other keywords illustrate need for further processing.
 
 ### Co-occurrence
 
@@ -400,6 +397,7 @@ library(ggraph)
 
 cooc_net = cooc_stats[1:50,]
 word_net = graph_from_data_frame(cooc_net)
+set.seed(202002)
 ggraph(word_net, 'kk') +
   geom_edge_link(aes(width=log10(cooc), edge_alpha=log10(cooc)), edge_colour='gray') +
   geom_node_text(aes(label=name), size=3, repel=T)+
@@ -409,8 +407,42 @@ ggraph(word_net, 'kk') +
   ggtitle('Cooccurrence within sentence - NOUN, ADJ')
 ```
 
-![](textual_report_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](textual_report_files/figure-gfm/coco_network-1.png)<!-- -->
+
+From the co-occurrence network above, one can see all tokens clustered
+around the `zerowaste`. The triplet `zerowaste-#unitedkingdom-#free`
+appears to be the most prominent. Another, a bit hidden, center is the
+`rt`. Furthermore, there is an exciting component of the graph
+describing disposable packaging (see the `plastic` and adjacent tokens).
 
 ## Next steps
+
+**Character-level processing**
+
+-   Remove/replace account handles.
+-   …
+
+**Document-level processing**
+
+-   Address duplicates/retweets.
+-   Address the issue of a relevance (What is a relevant tweet?).
+-   …
+
+**Token-level processing**
+
+-   Filter on token length.
+-   Filter on overall token frequency.
+-   Focus on `NOUN`, `ADJ` & `VERB`. Additional stop-words?
+-   Utilize lemmatized form of the tokens.
+-   Explore & remove other strange, irrelevant tokens (`gt`, `amp`,
+    \`rt\`\`).
+-   …
+
+**Others**
+
+-   Correlation map for hashtags?
+-   Computational complexity of the annotation step.
+-   Topic modeling & other covariates.
+-   …
 
 > Martin Fridrich 02/2020

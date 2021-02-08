@@ -16,7 +16,7 @@ This notebook aims to explore the #zerowaste data and provide a reader with seve
 
 ## Housekeepin'
 
-```{r echo=F,results=F, message=F, warning=F}
+```{r setup, include=F}
 to_install = c("data.table", "bit64", "tidyverse", "janitor", "devtools")
 
 for (pi in 1:length(to_install)){
@@ -30,7 +30,7 @@ In the opening section, we digest raw CSV files & union them into the resulting 
 ```{r message=F, warning=F}
 library(tidyverse)
 data_dir = "..//data//"
-csv_to_load = paste0(data_dir, list.files(data_dir))
+csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
 for (fi in 1:length(csv_to_load)){
@@ -146,7 +146,7 @@ hist(n_tags,
 
 From the left plot, we can see that approx. half of the tweets are shorter than 140 chars; however, some extended texts are almost 1000 char long. The middle plot shows that 75 % of the tweets consist of 25 words or less. Similarly, the right plot displays that 75 % of the tweets employ less than four hashtags. We recommend utilizing both texts & tweets to achieve acceptable performance in downstream steps considering the frequency distributions.
 
-```{r tok_tag_histograms, fig.width=15, fig.height=6}
+```{r tok_tag_bars, fig.width=15, fig.height=6}
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
 barplot(rev(log10(sort(tab_tokens, decreasing=T)[1:20])),
         xlim=c(0,6),
@@ -221,7 +221,7 @@ hist(log10(raw_tweets$quote_count),
 
 The frequency distribution of user-interactions with the content are all strongly right-skewed. We consider including a total number of interactions as a somewhat straightforward measure of relevance.
 
-```{r source_state_histograms, fig.width=15, fig.height=6}
+```{r source_state_bars, fig.width=15, fig.height=6}
 par(mfrow=c(1,2), mar=c(4,8,2,2))
 barplot(rev(log10(sort(tab_devices, decreasing=T)[1:20])),
         xlim=c(0,6),

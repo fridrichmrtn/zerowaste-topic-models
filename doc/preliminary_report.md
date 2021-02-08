@@ -1,4 +1,4 @@
-\#zerowaste tweets
+\#zerowaste tweets - preliminary report
 ================
 
 > Martin Fridrich 01/2020
@@ -23,7 +23,7 @@ present the overall structure of the dataset.
 ``` r
 library(tidyverse)
 data_dir = "..//data//"
-csv_to_load = paste0(data_dir, list.files(data_dir))
+csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
 for (fi in 1:length(csv_to_load)){
@@ -165,13 +165,13 @@ hist(n_tags,
 
 ![](preliminary_report_files/figure-gfm/char_tok_tag_histograms-1.png)<!-- -->
 
-From the left plot, we can see that approx. Half of the tweets are
+From the left plot, we can see that approx. half of the tweets are
 shorter than 140 chars; however, some extended texts are almost 1000
-char long. The middle shows that 75 % of the tweets consist of 25 words
-or less. Similarly, the right plot displays that 75 % of the tweets
-employ less than four hashtags. We recommend utilizing both texts &
-tweets to achieve acceptable performance in downstream steps considering
-the frequency distributions.
+char long. The middle plot shows that 75 % of the tweets consist of 25
+words or less. Similarly, the right plot displays that 75 % of the
+tweets employ less than four hashtags. We recommend utilizing both texts
+& tweets to achieve acceptable performance in downstream steps
+considering the frequency distributions.
 
 ``` r
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
@@ -187,7 +187,7 @@ barplot(rev(log10(sort(tab_tags, decreasing=T)[1:20])),
         xlab="log10 tag count")
 ```
 
-![](preliminary_report_files/figure-gfm/tok_tag_histograms-1.png)<!-- -->
+![](preliminary_report_files/figure-gfm/tok_tag_bars-1.png)<!-- -->
 
 In the first plot (left), we can see the 20 most popular hashtags; most
 of the tags are relevant to the domain at hand. However, some of them,
@@ -205,7 +205,7 @@ round(sort(n_langs, decreasing=T)[1:10]/nrow(raw_tweets),3)*100
     ##   en   fr   es  und   th   de   in   ca   it   tr 
     ## 71.0  6.5  5.7  3.4  2.9  2.4  2.2  1.1  0.8  0.8
 
-Most of the observed texts are written in English. Thus, only half of
+Most of the observed texts are written in English. Thus, only \~ 70 % of
 the data can be utilized as intended (i.e., tags + texts hybrid topic
 model).
 
@@ -289,7 +289,7 @@ barplot(rev(log10(sort(tab_locations, decreasing=T)[1:20])),
         xlab="log10 tweet count")
 ```
 
-![](preliminary_report_files/figure-gfm/source_state_histograms-1.png)<!-- -->
+![](preliminary_report_files/figure-gfm/source_state_bars-1.png)<!-- -->
 
 On the left, we see that even though most popular tweet sources are
 organic, there is a considerable amount of marketing automation apps. On
@@ -315,8 +315,8 @@ missing.
 **General**
 
 -   Re-iterate on the project scope & timeline.
--   Re-iterate on the prior hypothesis.
--   Discuss what is a relevant tweet.
+-   Re-iterate on the priors.
+-   Determine tweet relevance.
 
 **Dataset**
 
