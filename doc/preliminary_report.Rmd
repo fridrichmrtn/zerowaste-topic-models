@@ -171,12 +171,13 @@ Most of the observed texts are written in English. Thus, only ~ 70 % of the data
 ```{r year_hour_histograms, fig.width=15, fig.height=6}
 par(mfrow=c(1,2))
 hist(lubridate::year(cleaned_datetime),
-     main="no of tweets over years",
-    xlab="year")
+    main="no of tweets over years",
+    xlab="year",
+    breaks=11)
 hist(lubridate::hour(cleaned_datetime),
-     main="no of tweets over day-hour",
-     xlab="day-hour",
-     breaks=24)
+    main="no of tweets over day-hour",
+    xlab="day-hour",
+    breaks=24)
 ```
 
 On the left, one observes a steady incline until 2019, a decline since. On the right, we can see the frequency distribution of the data during the day. The first peak (00) still breaks out from a somewhat smooth distribution.

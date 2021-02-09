@@ -212,12 +212,13 @@ model).
 ``` r
 par(mfrow=c(1,2))
 hist(lubridate::year(cleaned_datetime),
-     main="no of tweets over years",
-    xlab="year")
+    main="no of tweets over years",
+    xlab="year",
+    breaks=11)
 hist(lubridate::hour(cleaned_datetime),
-     main="no of tweets over day-hour",
-     xlab="day-hour",
-     breaks=24)
+    main="no of tweets over day-hour",
+    xlab="day-hour",
+    breaks=24)
 ```
 
 ![](preliminary_report_files/figure-gfm/year_hour_histograms-1.png)<!-- -->
