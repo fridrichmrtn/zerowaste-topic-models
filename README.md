@@ -7,7 +7,7 @@ The project's main scope is to examine, describe & understand exciting latent fa
  * [/doc/focused_analysis/overall_report.md](/doc/focused_analysis/overall_report.md)
  * [/doc/focused_analysis/textual_report.md](/doc/focused_analysis/textual_report.md)
 
-## Repo structure
+## Doc
 
 ```
 ├──doc
