@@ -27,7 +27,7 @@ present the overall structure of the dataset.
 
 ``` r
 library(tidyverse)
-data_dir = "..//data//"
+data_dir = "..//..//data//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
@@ -223,9 +223,10 @@ metadata.
 library(udpipe)
 
 # try to reuse udpipe
-udp_files = list.files("..//data//", pattern="udpipe$", full.names=TRUE)
+udp_files = list.files("..//..//data//", pattern="udpipe$", full.names=TRUE)
 if (length(udp_files)==0){
-  udp_model = udpipe_download_model(language="english-ewt", model_dir="..//data//")
+  udp_model = udpipe_download_model(language="english-ewt",
+    model_dir="..//..//data//")
   upd_path = udp_model$file_model}else{
   file_df = file.info(udp_files)
   file_df = file_df[base::order(file_df$ctime,decreasing = T),]
@@ -354,6 +355,7 @@ plot_keys(pmi_stats,"pmi", "PMI Collocation")
 ```
 
 <img src="textual_report_files/figure-gfm/pmi_bars-1.png" style="display: block; margin: auto;" />
+
 PMI Collocation shows us mostly links between user accounts and obscure
 tokens.
 
@@ -363,6 +365,7 @@ plot_keys(snp_stats,"freq", "noun phrases with coordination conjuction")
 ```
 
 <img src="textual_report_files/figure-gfm/coco_bars-1.png" style="display: block; margin: auto;" />
+
 Noun phrases with coordination conjunction reveals exciting higher-level
 latent factors of the \#zerowaste such as veganism/food -
 `#gocrueltyfree #govegan`, `food waste`, shopping - `plastic bag`,
@@ -435,7 +438,7 @@ describing disposable packaging (see the `plastic` and adjacent tokens).
 -   Focus on `NOUN`, `ADJ` & `VERB`. Additional stop-words?
 -   Utilize lemmatized form of the tokens.
 -   Explore & remove other strange, irrelevant tokens (`gt`, `amp`,
-    \`rt\`\`).
+    `rt`).
 -   …
 
 **Others**

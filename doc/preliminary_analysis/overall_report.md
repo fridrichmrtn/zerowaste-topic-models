@@ -1,4 +1,4 @@
-\#zerowaste tweets - preliminary report
+\#zerowaste tweets - overall report
 ================
 
 > Martin Fridrich 01/2020
@@ -22,7 +22,7 @@ present the overall structure of the dataset.
 
 ``` r
 library(tidyverse)
-data_dir = "..//data//"
+data_dir = "..//..//data//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
@@ -163,7 +163,7 @@ hist(n_tags,
      cex.lab=1.3)
 ```
 
-![](preliminary_report_files/figure-gfm/char_tok_tag_histograms-1.png)<!-- -->
+![](overall_report_files/figure-gfm/char_tok_tag_histograms-1.png)<!-- -->
 
 From the left plot, we can see that approx. half of the tweets are
 shorter than 140 chars; however, some extended texts are almost 1000
@@ -187,7 +187,7 @@ barplot(rev(log10(sort(tab_tags, decreasing=T)[1:20])),
         xlab="log10 tag count")
 ```
 
-![](preliminary_report_files/figure-gfm/tok_tag_bars-1.png)<!-- -->
+![](overall_report_files/figure-gfm/tok_tag_bars-1.png)<!-- -->
 
 In the first plot (left), we can see the 20 most popular hashtags; most
 of the tags are relevant to the domain at hand. However, some of them,
@@ -221,7 +221,7 @@ hist(lubridate::hour(cleaned_datetime),
     breaks=24)
 ```
 
-![](preliminary_report_files/figure-gfm/year_hour_histograms-1.png)<!-- -->
+![](overall_report_files/figure-gfm/year_hour_histograms-1.png)<!-- -->
 
 On the left, one observes a steady incline until 2019, a decline since.
 On the right, we can see the frequency distribution of the data during
@@ -239,7 +239,7 @@ hist(log10(users$n_tweets[users$is_verified==1]),
      xlim=c(0,5))
 ```
 
-![](preliminary_report_files/figure-gfm/user_histograms-1.png)<!-- -->
+![](overall_report_files/figure-gfm/user_histograms-1.png)<!-- -->
 
 The plots above suggest that an average number of tweets by regular or
 verified users might be drawn from the same underlying probability
@@ -270,7 +270,7 @@ hist(log10(raw_tweets$quote_count),
      cex.lab=1.3)
 ```
 
-![](preliminary_report_files/figure-gfm/interaction_histograms-1.png)<!-- -->
+![](overall_report_files/figure-gfm/interaction_histograms-1.png)<!-- -->
 
 The frequency distribution of user-interactions with the content are all
 strongly right-skewed. We consider including a total number of
@@ -290,7 +290,7 @@ barplot(rev(log10(sort(tab_locations, decreasing=T)[1:20])),
         xlab="log10 tweet count")
 ```
 
-![](preliminary_report_files/figure-gfm/source_state_bars-1.png)<!-- -->
+![](overall_report_files/figure-gfm/source_state_bars-1.png)<!-- -->
 
 On the left, we see that even though most popular tweet sources are
 organic, there is a considerable amount of marketing automation apps. On

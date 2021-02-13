@@ -36,7 +36,7 @@ In the opening section, we digest raw CSV files & union them into the resulting 
 
 ```{r message=F, warning=F}
 library(tidyverse)
-data_dir = "..//data//"
+data_dir = "..//..//data//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
@@ -193,9 +193,10 @@ First of all, we attempt to load/download the `udpipe`'s `english-ewt` model for
 library(udpipe)
 
 # try to reuse udpipe
-udp_files = list.files("..//data//", pattern="udpipe$", full.names=TRUE)
+udp_files = list.files("..//..//data//", pattern="udpipe$", full.names=TRUE)
 if (length(udp_files)==0){
-  udp_model = udpipe_download_model(language="english-ewt", model_dir="..//data//")
+  udp_model = udpipe_download_model(language="english-ewt",
+    model_dir="..//..//data//")
   upd_path = udp_model$file_model}else{
   file_df = file.info(udp_files)
   file_df = file_df[base::order(file_df$ctime,decreasing = T),]
@@ -220,7 +221,7 @@ head(annotated_tweets, 5) %>% as_tibble()
 
 ```{r include=F}
 #save("annotated_tweets",file="..//data//annotated_tweets.RData")
-load("..//data//annotated_tweets.RData")
+load("..//..//data//annotated_tweets.RData")
 ```
 
 Let's peek at observed frequency of various parts of speech.
@@ -311,12 +312,14 @@ The chart above correctly captures some of the key aspects of #zerowaste tweets 
 par(mar=c(4,14,2,2))
 plot_keys(pmi_stats,"pmi", "PMI Collocation")
 ```
+
 PMI Collocation shows us mostly links between user accounts and obscure tokens.
 
 ```{r coco_bars, fig.width=8, fig.height=4, fig.align='center'}
 par(mar=c(4,14,2,2))
 plot_keys(snp_stats,"freq", "noun phrases with coordination conjuction")
 ```
+
 Noun phrases with coordination conjunction reveals exciting higher-level latent factors of the #zerowaste such as veganism/food - `#gocrueltyfree #govegan`, `food waste`, shopping - `plastic bag`, `grocery store`, and location - `london #unitedkingdom`. Again, some other keywords illustrate need for further processing.
 
 ### Co-occurrence
@@ -367,7 +370,7 @@ From the co-occurrence network above, one can see all tokens clustered around th
  * Filter on overall token frequency.
  * Focus on `NOUN`, `ADJ` & `VERB`. Additional stop-words?
  * Utilize lemmatized form of the tokens.
- * Explore & remove other strange, irrelevant tokens (`gt`, `amp`, `rt``).
+ * Explore & remove other strange, irrelevant tokens (`gt`, `amp`, `rt`).
  * ...
 
 **Others**
