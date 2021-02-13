@@ -1,12 +1,12 @@
-\#zerowaste tweets - overall report
+\#zerowaste subset - overall report
 ================
 
 > Martin Fridrich 02/2020
 
 This notebook aims to explore the pre-agreed subset of the \#zerowaste
-tweets with respect to the original dimensions of the analysis. We focus
-on the distinct tweets written in English, with location pinned down to
-USA or UK. The document is structured as follows:
+tweets concerning the analysis’s original dimensions. We focus on the
+distinct tweets written in English, with locations pinned down to the US
+or UK. The document is structured as follows:
 
 1 [Housekeepin’](#housekeepin)  
 2 [Subsetting](#subsetting)  
@@ -73,7 +73,7 @@ nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
 nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
 ```
 
-We start with peeking at fundamental characteristics of the full
+We start with peeking at the fundamental characteristics of the full
 dataset. We identify 328574 unique user accounts; only 5912 of them are
 verified. We see 1119803 of unique tweets based on provided `id`,
 although 733724 distinct tweets are based on the text itself. Similarly,
@@ -83,7 +83,7 @@ RT detection. We see there is a slight disproportion in those metrics.
 ## Subsetting
 
 In the next code chunks, we deal with the practical definition & forming
-of the subset. In addition, we describe a few of its attributes
+of the subset. Besides, we describe a few of its attributes
 
 ``` r
 cleaned_datetime = strptime(gsub("\\+0000","",raw_tweets$date),
@@ -115,7 +115,7 @@ nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
 
 We start with checking the essential properties of the subset. The data
 consists of 187888 rows and 26 columns. Furthermore, we see 34098 unique
-user accounts; only 1092 of them verified. We observe 187888 of unique
+user accounts; however, only 1092 verified. We observe 187888 of unique
 tweets based on `id`, and 187888 distinct tweets are based on the text
 itself. Similarly, we identify 0 retweets based on reference, and 0
 based on naive RT detection. This is to be expected.
@@ -208,9 +208,9 @@ hist(n_tags,
 From the left plot, we can see that approx. half of the tweets are
 shorter than 140 chars; however, some extended texts are almost 1000
 char long. The middle plot shows that 75 % of the tweets consist of 29
-words or less. Similarly, the right plot displays that 50 % of the
-tweets employ less than four hashtags. We appears to be a slight
-improvement of the token & tag count when compared to the original set.
+words or less. Similarly, the right chart displays that 50 % of the
+tweets employ less than four hashtags. There appears to be a slight
+improvement of the token & tag count compared to the original set.
 
 ``` r
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
@@ -232,7 +232,7 @@ In the first plot (left), one can see the most common word tokens.
 Interestingly, the first three places are occupied by artifacts from web
 addresses. In the first plot (left), we can see the 20 most popular
 hashtags; most of the tags are relevant to the domain at hand. The local
-difussion suggested by the original tweets is not present.
+diffusion suggested by the original tweets is not present.
 
 ``` r
 round(sort(n_langs, decreasing=T)[1:10]/nrow(raw_tweets),3)*100
@@ -332,26 +332,8 @@ the right, we see approximate locations of the tweets on a state level.
 
 ## Next steps
 
-**General**
-
--   Re-iterate on the project scope & timeline.
--   Re-iterate on the priors.
--   Determine tweet relevance.
-
-**Dataset**
-
-We would like to have detailed info regarding the data generation
-process. Some of the issues from the first dataset still prevail.
-However, addressing the problems have to be align with the project scope
-(e.g. page-ranking users might not make any sense with the dataset at
-hand, etc.).
-
-**Preprocessing**
-
-Filtering based on account entities & different parameters for selection
-should be examined. This is necessary in order to eliminate irrelevant
-observations & features. Moreover, we propose to employ hybrid model
-based on texts, tags & covariates. Thus, respective processing pipelines
-have to be designed and developed.
+We eliminated most of the issues from the preliminary part of the
+research with straightforward refinement. However, the resulting subset
+needs to further analyzed concerning the textual content & topic models.
 
 > Martin Fridrich 02/2020
