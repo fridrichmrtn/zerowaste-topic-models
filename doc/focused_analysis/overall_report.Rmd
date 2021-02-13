@@ -4,20 +4,21 @@ output:
   github_document
 ---
 
-> Martin Fridrich 01/2020 
+> Martin Fridrich 02/2020 
 
-This notebook aims to explore the #zerowaste data and provide a reader with several insights. It will serve as a baseline for downstream transformation & modeling procedures. The structure of the analysis is as follows:
+This notebook aims to explore the pre-agreed subset of the #zerowaste tweets concerning the analysis's original dimensions. We focus on the distinct tweets written in English, with locations pinned down to the US or UK. The document is structured as follows:
 
 1 [Housekeepin']  
-2 [Exploratory data analysis]  
-&nbsp;&nbsp;2.1 [Computing characteristics]  
-&nbsp;&nbsp;2.2 [Visualizations]  
-3 [Next steps]
+2 [Subsetting]  
+3 [Exploratory data analysis]  
+&nbsp;&nbsp;3.1 [Computing characteristics]  
+&nbsp;&nbsp;3.2 [Visualizations]  
+4 [Next steps]
 
 ## Housekeepin'
 
 ```{r setup, include=F}
-to_install = c("data.table", "bit64", "tidyverse", "janitor", "devtools")
+to_install = c("data.table", "bit64", "tidyverse", "janitor", "devtools", "stringdist")
 
 for (pi in 1:length(to_install)){
   if(!to_install[pi] %in% rownames(installed.packages())){
@@ -44,6 +45,56 @@ as_tibble(head(raw_tweets))
 
 The data consists of `r nrow(raw_tweets)` rows and `r ncol(raw_tweets)` columns. It appears to be an extended version of the export with more details regarding both the tweets (interactions, language, links between the tweets, location, device, etc.) & accounts (verification, language, location, etc.). The columns appear to be loaded in the correct format except for the `Date`. This allows us to incorporate much broader perspectives of the modeling.
 
+```{r}
+raw_tweets$tweet = ifelse(raw_tweets$text_truncated,
+  raw_tweets$text_full,raw_tweets$text)
+
+# users
+nu_users = length(unique(raw_tweets$user_id)) #on ids
+nu_verified = length(unique(raw_tweets$user_id[raw_tweets$user_verified]))
+# tweets
+nid_tweets = length(unique(raw_tweets$id)) #on ids
+nu_tweets = length(unique(raw_tweets$tweet)) #on texts
+nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
+nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
+```
+
+We start with peeking at the fundamental characteristics of the full dataset. We identify `r nu_users` unique user accounts; only `r nu_verified` of them are verified. We see `r nid_tweets` of unique tweets based on provided `id`, although `r nu_tweets` distinct tweets are based on the text itself. Similarly, we observe `r nid_retweets` retweets based on reference, but `r nu_tweets` based on naive RT detection. We see there is a slight disproportion in those metrics.
+
+## Subsetting
+
+In the next code chunks, we deal with the practical definition & forming of the subset. Besides, we describe a few of its attributes
+
+```{r}
+cleaned_datetime = strptime(gsub("\\+0000","",raw_tweets$date),
+    format="%a %b %d %H:%M:%S %Y")
+raw_tweets = arrange(raw_tweets, desc(cleaned_datetime))
+
+# loc & lang filter
+locs = sapply(raw_tweets$derived_location,
+  function(x)ifelse(is.na(x),"NA", tail(strsplit(x,", ")[[1]],1)))
+raw_tweets = raw_tweets[locs %in% c("United States","United Kingdom") & lang=="en",]
+
+# duplicates
+raw_tweets = distinct(raw_tweets, tweet, .keep_all=T)
+
+# retweets
+raw_tweets = raw_tweets[!grepl("RT @",raw_tweets$tweet),]
+```
+
+```{r}
+# users
+nu_users = length(unique(raw_tweets$user_id)) #on ids
+nu_verified = length(unique(raw_tweets$user_id[raw_tweets$user_verified]))
+# tweets
+nid_tweets = length(unique(raw_tweets$id)) #on ids
+nu_tweets = length(unique(raw_tweets$tweet)) #on texts
+nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
+nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
+```
+ 
+We start with checking the essential properties of the subset. The data consists of `r nrow(raw_tweets)` rows and `r ncol(raw_tweets)` columns. Furthermore, we see `r nu_users` unique user accounts; however, only `r nu_verified` verified. We observe `r nid_tweets` of unique tweets based on `id`, and `r nu_tweets` distinct tweets are based on the text itself. Similarly, we identify `r nid_retweets` retweets based on reference, and `r nu_retweets` based on naive RT detection. This is to be expected.
+
 ```{r echo=F, results='hide'}
 rm(list=setdiff(ls(),"raw_tweets"))
 gc()
@@ -51,29 +102,13 @@ gc()
 
 ## Exploratory data analysis
 
-Within this section, we extract & examine selected properties of the tweets considering both texts and covariates.
-
-```{r cache=F}
-# users
-nu_users = length(unique(raw_tweets$user_id)) #on ids
-nu_verified = length(unique(raw_tweets$user_id[raw_tweets$user_verified]))
-# tweets
-nid_tweets = length(unique(raw_tweets$id)) #on ids
-nu_tweets = length(unique(raw_tweets$text)) #on texts
-nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
-nu_retweets = sum(grepl("RT @",raw_tweets$text))
-```
-
-We start with fundamental characteristics. We identify `r nu_users` unique user accounts; only `r nu_verified` of them are verified. We see `r nid_tweets` of unique tweets based on provided `id`, although `r nu_tweets` distinct tweets are based on the text itself. Similarly, we observe `r nid_retweets` retweets based on reference, but `r nu_tweets` based on naive RT detection. We see there is a slight disproportion in those metrics.
-
 ### Computing characteristics
 
 In the next code chunk, we construct base objects describing the frequency distribution of the data concerning texts, tokens, covariates, etc.
 
 ```{r cache=T}
 # texts
-tweets = ifelse(raw_tweets$text_truncated,
-                raw_tweets$text_full,raw_tweets$text)
+tweets = raw_tweets$tweet
 n_chars = sapply(tweets, nchar)
 names(n_chars) = NULL
 n_tokens = stringr::str_count(tweets, "\\w+")
@@ -144,7 +179,7 @@ hist(n_tags,
      cex.lab=1.3)
 ```
 
-From the left plot, we can see that approx. half of the tweets are shorter than 140 chars; however, some extended texts are almost 1000 char long. The middle plot shows that 75 % of the tweets consist of 25 words or less. Similarly, the right plot displays that 75 % of the tweets employ less than four hashtags. We recommend utilizing both texts & tweets to achieve acceptable performance in downstream steps considering the frequency distributions.
+From the left plot, we can see that approx. half of the tweets are shorter than 140 chars; however, some extended texts are almost 1000 char long. The middle plot shows that 75 % of the tweets consist of 29 words or less. Similarly, the right chart displays that 50 % of the tweets employ less than four hashtags. There appears to be a slight improvement of the token & tag count compared to the original set.
 
 ```{r tok_tag_bars, fig.width=15, fig.height=6}
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
@@ -160,13 +195,13 @@ barplot(rev(log10(sort(tab_tags, decreasing=T)[1:20])),
         xlab="log10 tag count")
 ```
 
-In the first plot (left), one can see the most common word tokens. Interestingly, the first three places are occupied by artifacts from web addresses. In the first plot (left), we can see the 20 most popular hashtags; the tags are relevant to the domain at hand. However, some of them, such as `UnitedKingdom`, `Singapore` or `Mexico` suggest local diffusion. It becomes evident that both tags & texts need polishing.
+In the first plot (left), one can see the most common word tokens. Interestingly, the first three places are occupied by artifacts from web addresses. In the first plot (left), we can see the 20 most popular hashtags; most of the tags are relevant to the domain at hand. The local diffusion suggested by the original tweets is not present.
 
 ```{r}
 round(sort(n_langs, decreasing=T)[1:10]/nrow(raw_tweets),3)*100
 ```
 
-Most of the observed texts are written in English. Thus, only ~ 70 % of the data can be utilized as intended (i.e., tags + texts hybrid topic model).
+All selected texts are in English.
 
 ```{r year_hour_histograms, fig.width=15, fig.height=6}
 par(mfrow=c(1,2))
@@ -236,32 +271,10 @@ barplot(rev(log10(sort(tab_locations, decreasing=T)[1:20])),
         xlab="log10 tweet count")
 ```
 
-On the left, we see that even though most popular tweet sources are organic, there is a considerable amount of marketing automation apps. On the right, we see approximate locations of the tweets on a state level. Both perspectives might help us in further efforts concerning the relevancy of the analysis's tweets & scope.
-
-```{r}
-# data integrity
-missing_retweets = 1-sum(raw_tweets$in_retweet_to_id %in% raw_tweets$id)/
-  sum(!is.na(raw_tweets$in_retweet_to_id))
-missing_quotes = 1-sum(raw_tweets$in_quote_to_id %in% raw_tweets$id)/
-  sum(!is.na(raw_tweets$in_quote_to_id))
-```
-
-Lastly, we check on data-integrity of the export in terms on the retweets & quotes. We see that out of `r sum(!is.na(raw_tweets$in_retweet_to_id))` retweets, there is `r round(missing_retweets*100,2)` % of them missing. Similarly, out of `r sum(!is.na(raw_tweets$in_quote_to_id))` quotes, `r round(missing_quotes*100,2)` % of them are missing.
+On the left, we see that even though most popular tweet sources are organic, there is a considerable amount of marketing automation apps. On the right, we see approximate locations of the tweets on a state level.
 
 ## Next steps
 
-**General**
- 
- * Re-iterate on the project scope & timeline.
- * Re-iterate on the priors.
- * Determine tweet relevance.
+We eliminated most of the issues from the preliminary part of the research with straightforward refinement. However, the resulting subset needs to further analyzed concerning the textual content & topic models.
 
-**Dataset**
-
-We would like to have detailed info regarding the data generation process. Some of the issues from the first dataset still prevail. However, addressing the problems have to be align with the project scope (e.g. page-ranking users might not make any sense with the dataset at hand, etc.).
-
-**Preprocessing**
-
-Filtering based on account entities & different parameters for selection should be examined. This is necessary in order to eliminate irrelevant observations & features. Moreover, we propose to employ hybrid model based on texts, tags & covariates. Thus, respective processing pipelines have to be designed and developed.
-
-> Martin Fridrich 01/2020
+> Martin Fridrich 02/2020

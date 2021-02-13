@@ -1,18 +1,19 @@
 \#zerowaste tweets - overall report
 ================
 
-> Martin Fridrich 01/2020
+> Martin Fridrich 02/2020
 
-This notebook aims to explore the \#zerowaste data and provide a reader
-with several insights. It will serve as a baseline for downstream
-transformation & modeling procedures. The structure of the analysis is
-as follows:
+This notebook aims to explore the pre-agreed subset of the \#zerowaste
+tweets with respect to the original dimensions of the analysis. We focus
+on the distinct tweets written in English, with location pinned down to
+USA or UK. The document is structured as follows:
 
 1 [Housekeepin’](#housekeepin)  
-2 [Exploratory data analysis](#exploratory-data-analysis)  
-  2.1 [Computing characteristics](#computing-characteristics)  
-  2.2 [Visualizations](#visualizations)  
-3 [Next steps](#next-steps)
+2 [Subsetting](#subsetting)  
+3 [Exploratory data analysis](#exploratory-data-analysis)  
+  3.1 [Computing characteristics](#computing-characteristics)  
+  3.2 [Visualizations](#visualizations)  
+4 [Next steps](#next-steps)
 
 ## Housekeepin’
 
@@ -58,10 +59,48 @@ device, etc.) & accounts (verification, language, location, etc.). The
 columns appear to be loaded in the correct format except for the `Date`.
 This allows us to incorporate much broader perspectives of the modeling.
 
-## Exploratory data analysis
+``` r
+raw_tweets$tweet = ifelse(raw_tweets$text_truncated,
+  raw_tweets$text_full,raw_tweets$text)
 
-Within this section, we extract & examine selected properties of the
-tweets considering both texts and covariates.
+# users
+nu_users = length(unique(raw_tweets$user_id)) #on ids
+nu_verified = length(unique(raw_tweets$user_id[raw_tweets$user_verified]))
+# tweets
+nid_tweets = length(unique(raw_tweets$id)) #on ids
+nu_tweets = length(unique(raw_tweets$tweet)) #on texts
+nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
+nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
+```
+
+We start with peeking at fundamental characteristics of the full
+dataset. We identify 328574 unique user accounts; only 5912 of them are
+verified. We see 1119803 of unique tweets based on provided `id`,
+although 733724 distinct tweets are based on the text itself. Similarly,
+we observe 528218 retweets based on reference, but 733724 based on naive
+RT detection. We see there is a slight disproportion in those metrics.
+
+## Subsetting
+
+In the next code chunks, we deal with the practical definition & forming
+of the subset. In addition, we describe a few of its attributes
+
+``` r
+cleaned_datetime = strptime(gsub("\\+0000","",raw_tweets$date),
+    format="%a %b %d %H:%M:%S %Y")
+raw_tweets = arrange(raw_tweets, desc(cleaned_datetime))
+
+# loc & lang filter
+locs = sapply(raw_tweets$derived_location,
+  function(x)ifelse(is.na(x),"NA", tail(strsplit(x,", ")[[1]],1)))
+raw_tweets = raw_tweets[locs %in% c("United States","United Kingdom") & lang=="en",]
+
+# duplicates
+raw_tweets = distinct(raw_tweets, tweet, .keep_all=T)
+
+# retweets
+raw_tweets = raw_tweets[!grepl("RT @",raw_tweets$tweet),]
+```
 
 ``` r
 # users
@@ -69,17 +108,19 @@ nu_users = length(unique(raw_tweets$user_id)) #on ids
 nu_verified = length(unique(raw_tweets$user_id[raw_tweets$user_verified]))
 # tweets
 nid_tweets = length(unique(raw_tweets$id)) #on ids
-nu_tweets = length(unique(raw_tweets$text)) #on texts
+nu_tweets = length(unique(raw_tweets$tweet)) #on texts
 nid_retweets = sum(!is.na(raw_tweets$in_retweet_to_id))
-nu_retweets = sum(grepl("RT @",raw_tweets$text))
+nu_retweets = sum(grepl("RT @",raw_tweets$tweet))
 ```
 
-We start with fundamental characteristics. We identify 328574 unique
-user accounts; only 5912 of them are verified. We see 1119803 of unique
-tweets based on provided `id`, although 739036 distinct tweets are based
-on the text itself. Similarly, we observe 528218 retweets based on
-reference, but 739036 based on naive RT detection. We see there is a
-slight disproportion in those metrics.
+We start with checking the essential properties of the subset. The data
+consists of 187888 rows and 26 columns. Furthermore, we see 34098 unique
+user accounts; only 1092 of them verified. We observe 187888 of unique
+tweets based on `id`, and 187888 distinct tweets are based on the text
+itself. Similarly, we identify 0 retweets based on reference, and 0
+based on naive RT detection. This is to be expected.
+
+## Exploratory data analysis
 
 ### Computing characteristics
 
@@ -89,8 +130,7 @@ etc.
 
 ``` r
 # texts
-tweets = ifelse(raw_tweets$text_truncated,
-                raw_tweets$text_full,raw_tweets$text)
+tweets = raw_tweets$tweet
 n_chars = sapply(tweets, nchar)
 names(n_chars) = NULL
 n_tokens = stringr::str_count(tweets, "\\w+")
@@ -167,11 +207,10 @@ hist(n_tags,
 
 From the left plot, we can see that approx. half of the tweets are
 shorter than 140 chars; however, some extended texts are almost 1000
-char long. The middle plot shows that 75 % of the tweets consist of 25
-words or less. Similarly, the right plot displays that 75 % of the
-tweets employ less than four hashtags. We recommend utilizing both texts
-& tweets to achieve acceptable performance in downstream steps
-considering the frequency distributions.
+char long. The middle plot shows that 75 % of the tweets consist of 29
+words or less. Similarly, the right plot displays that 50 % of the
+tweets employ less than four hashtags. We appears to be a slight
+improvement of the token & tag count when compared to the original set.
 
 ``` r
 par(mfrow=c(1,2), mar=c(4,7.5,2,2))
@@ -192,21 +231,17 @@ barplot(rev(log10(sort(tab_tags, decreasing=T)[1:20])),
 In the first plot (left), one can see the most common word tokens.
 Interestingly, the first three places are occupied by artifacts from web
 addresses. In the first plot (left), we can see the 20 most popular
-hashtags; the tags are relevant to the domain at hand. However, some of
-them, such as `UnitedKingdom`, `Singapore` or `Mexico` suggest local
-diffusion. It becomes evident that both tags & texts need polishing.
+hashtags; most of the tags are relevant to the domain at hand. The local
+difussion suggested by the original tweets is not present.
 
 ``` r
 round(sort(n_langs, decreasing=T)[1:10]/nrow(raw_tweets),3)*100
 ```
 
-    ## 
-    ##   en   fr   es  und   th   de   in   ca   it   tr 
-    ## 71.0  6.5  5.7  3.4  2.9  2.4  2.2  1.1  0.8  0.8
+    ##   en <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> 
+    ##  100   NA   NA   NA   NA   NA   NA   NA   NA   NA
 
-Most of the observed texts are written in English. Thus, only \~ 70 % of
-the data can be utilized as intended (i.e., tags + texts hybrid topic
-model).
+All selected texts are in English.
 
 ``` r
 par(mfrow=c(1,2))
@@ -272,7 +307,7 @@ hist(log10(raw_tweets$quote_count),
 ![](overall_report_files/figure-gfm/interaction_histograms-1.png)<!-- -->
 
 The frequency distribution of user-interactions with the content are all
-strongly right-skewed. We consider including a total number of
+strongly right-skewed. We may consider including a total number of
 interactions as a somewhat straightforward measure of relevance.
 
 ``` r
@@ -294,21 +329,6 @@ barplot(rev(log10(sort(tab_locations, decreasing=T)[1:20])),
 On the left, we see that even though most popular tweet sources are
 organic, there is a considerable amount of marketing automation apps. On
 the right, we see approximate locations of the tweets on a state level.
-Both perspectives might help us in further efforts concerning the
-relevancy of the analysis’s tweets & scope.
-
-``` r
-# data integrity
-missing_retweets = 1-sum(raw_tweets$in_retweet_to_id %in% raw_tweets$id)/
-  sum(!is.na(raw_tweets$in_retweet_to_id))
-missing_quotes = 1-sum(raw_tweets$in_quote_to_id %in% raw_tweets$id)/
-  sum(!is.na(raw_tweets$in_quote_to_id))
-```
-
-Lastly, we check on data-integrity of the export in terms on the
-retweets & quotes. We see that out of 528218 retweets, there is 0.3 % of
-them missing. Similarly, out of 71372 quotes, 83.05 % of them are
-missing.
 
 ## Next steps
 
@@ -334,4 +354,4 @@ observations & features. Moreover, we propose to employ hybrid model
 based on texts, tags & covariates. Thus, respective processing pipelines
 have to be designed and developed.
 
-> Martin Fridrich 01/2020
+> Martin Fridrich 02/2020
