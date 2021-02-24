@@ -1,0 +1,224 @@
+---
+title: "#zerowaste subset - topic modeling report"
+output: github_document
+---
+
+> Martin Fridrich 02/2020 
+
+## Housekeepin'
+
+```{r setup, include=FALSE}
+to_install = c("data.table", "bit64", "tidyverse", "quanteda", "udpipe",
+               "stringi", "igraph", "ggraph", "parallel", "tm", "stm")
+for (pi in 1:length(to_install)){
+  if(!to_install[pi] %in% rownames(installed.packages())){
+    install.packages(to_install[pi])}}
+```
+
+```{r message=F, warning=F}
+library(tidyverse)
+data_dir = "..//..//data//"
+csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
+csv_ls = list()
+
+for (fi in 1:length(csv_to_load)){
+  csv_ls[[fi]] = data.table::fread(csv_to_load[fi],
+    data.table=F, na.strings="", nThread=4)}
+
+raw_tweets = data.table::rbindlist(csv_ls)
+raw_tweets = raw_tweets %>% janitor::clean_names() %>% as.data.frame()
+as_tibble(head(raw_tweets))
+```
+
+## Data processing
+
+
+### Covariate, character & document-level processing
+
+```{r}
+# covariate-level
+purge_covs = function(doc_df){
+  # form date cov
+  doc_df$date = strptime(gsub("\\+0000","",doc_df$date), format="%a %b %d %H:%M:%S %Y")
+  doc_df$year = lubridate::year(doc_df$date)
+  # form state cov
+  doc_df$state = sapply(doc_df$derived_location,
+    function(x)ifelse(is.na(x),"NA", tail(strsplit(x,", ")[[1]],1)))
+  return(doc_df)}
+
+# character-level
+purge_chars = function(char_vec){
+  # to lower
+  char_vec = tolower(char_vec)
+  # remove hardcoded chars
+  char_vec = gsub("(&amp;|&gt;)"," ",char_vec)
+  # remove tags
+  char_vec = gsub("<.*?>|</.*?>","",char_vec)
+  # remove links
+  char_vec = gsub("(s?)(f|ht)tp(s?)://\\S+\\b", "", char_vec)
+  # use only a-z chars, spaces and punct
+  char_vec = gsub("[^a-z#@_ '.,?!]"," ",char_vec)
+  # collapse multiple spaces
+  char_vec = gsub("\\s+"," ",char_vec)
+  return(char_vec)}
+
+# docu-level
+purge_docs = function(doc_df){
+  doc_df = doc_df[nchar(doc_df$text)>=50,]
+  doc_df = doc_df[doc_df$lang=="en" &
+      doc_df$state %in% c("United States", "United Kingdom"),]
+  doc_df = doc_df[!grepl("rt @",doc_df$text),]
+  doc_df = arrange(doc_df, date) %>%
+      distinct(text, .keep_all=T)
+  return(doc_df)}
+```
+
+### Token-level processing
+
+```{r}
+# get udpipe model
+get_udpipe_model = function(lang="english-ewt", dir="..//..//data//"){
+  require(udpipe)
+  udp_files = list.files(dir, pattern=paste0("^",lang), full.names=TRUE)
+  if (length(udp_files)==0){
+    udp_model = udpipe_download_model(language=lang,
+      model_dir=dir)
+    upd_path = udp_model$file_model}else{
+    file_df = file.info(udp_files)
+    file_df = file_df[base::order(file_df$ctime,decreasing = T),]
+    upd_path = rownames(file_df)[1]}
+  return(udpipe_load_model(file = upd_path))}
+
+# annotate texts
+get_annotated_texts = function(txt_vec, id, model=get_udpipe_model()){
+  require(udpipe)
+  names(txt_vec) = id
+  annotated_df= udpipe(txt_vec, model, parallel.cores=8)
+  annotated_df = as.data.frame(annotated_df, detailed=T)
+  return(annotated_df[,c("doc_id", "token_id", "sentence_id",
+    "token", "lemma", "upos", "xpos", "dep_rel")])}
+
+# purge lemmas
+purge_lemma = function(annotated_df){
+  require(dplyr)
+  lag_df = data.frame(doc_id = annotated_df$doc_id,
+    token_id = as.character(as.numeric(annotated_df$token_id)+1),
+    lag = ifelse(annotated_df$lemma %in% c("@", "#"), annotated_df$lemma, NA)) %>%
+    filter(!is.na(lag))
+  
+  annotated_df = annotated_df %>%
+    left_join(lag_df, by=c("doc_id", "token_id")) %>%
+    mutate(lemma = ifelse(!is.na(lag), paste0(lag, lemma), lemma)) %>%
+    filter(upos %in% c("NOUN", "VERB", "ADJ"))
+  
+  frequent_lemmas = annotated_df %>%
+    group_by(lemma) %>%
+    summarise(n_doc=n_distinct(doc_id), n=n()) %>%
+    filter(n>0 & n_doc>0)
+  
+  annotated_df = annotated_df %>% # alternatively use inner_join
+    filter(lemma %in% frequent_lemmas$lemma)
+  return(annotated_df)}
+
+# purge annotations
+purge_annot = function(doc_df){
+  require(bit64)
+  annotated_df = get_annotated_texts(doc_df$text, doc_df$doc_id) %>%
+    purge_lemma()
+
+  annotated_df = annotated_df %>%
+    group_by(doc_id) %>%
+    mutate(text = paste0(lemma, collapse=' ')) %>%
+    select(doc_id, annot_text=text) %>% ungroup() %>% unique() %>%
+    mutate(doc_id = as.integer64(doc_id))
+    
+  doc_df = doc_df %>%
+    inner_join(annotated_df, by='doc_id') %>%
+    select(doc_id, user_id, text=annot_text,
+    raw_text, year)
+  return(doc_df)}
+```
+
+### Execution
+
+```{r message=F, warning=F}
+tweets = purge_covs(raw_tweets)
+tweets$text[raw_tweets$text_truncated] = raw_tweets$text_full[raw_tweets$text_truncated]
+tweets$raw_text = tweets$text # keep the raw text
+
+library(parallel)
+cl = makeCluster(8)
+  tweets$text = parSapply(cl, tweets$text, purge_chars)
+stopCluster(cl)
+
+tweets = purge_docs(tweets)
+tweets = tweets[,c("id", "user_id", "text", "raw_text", "year")]
+names(tweets)[1] = "doc_id"
+
+tweets = purge_annot(tweets)
+```
+
+
+```{r}
+library(stm)
+processed = textProcessor(documents=tweets$text,
+  metadata=tweets, lowercase=F, removestopwords=F,
+  removenumbers=F, removepunctuation=F, stem=F)
+
+doc = processed$documents
+voc = processed$vocab
+meta = processed$meta  
+```
+```{r include=F}
+rm(list=setdiff(ls(), c("doc","voc", "meta")))
+gc()
+```
+
+## Exploratory data analysis
+
+```{r}
+# tweets per year
+hist(meta$year,
+     main="no of tweets over years",
+     xlab="year",
+     ylim=c(0,45000),
+     breaks=11)
+```
+
+```{r}
+# the most frequent tokens
+freq_df = data.frame(doc) %>% data.table::transpose() %>%
+  select(token=V1,count=V2) %>% group_by(token) %>%
+  summarize(count=sum(count)) %>% arrange(count) %>%
+  mutate(token=voc[token])
+
+par(mfrow=c(1,2))
+
+hist(x=log10(freq_df$count), main="Token frequency",
+  ylab="frequency", xlab="log10 count", breaks=25,
+  cex.lab=0.8, cex.main=0.8, cex=0.8)
+
+with(tail(freq_df, 20),
+  barplot(height = log10(count),
+  names.arg=token, main="20 most frequent tokens", xlab="log10 count",
+  horiz = T, las=2,
+  cex.names=0.8, cex.lab=0.8,
+  cex.main=0.8, cex=0.8))
+```
+
+```{r}
+hist(x=log10(freq_df$count), main="Token frequency",
+  ylab="frequency", xlab="log10 count", breaks=25,
+  cex.lab=0.8,
+  cex.main=0.8, cex=0.8)
+```
+
+## Topic modeling
+
+### Structural topic model
+
+### Hyperparameters sweep
+
+### Results
+
+## Discussion
