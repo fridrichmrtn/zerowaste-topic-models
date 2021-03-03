@@ -10,13 +10,13 @@ output: github_document
 &nbsp;&nbsp;2.1 [Covariate, character & document-level processing]  
 &nbsp;&nbsp;2.2 [Token-level processing]  
 &nbsp;&nbsp;2.3 [Execution]  
-2 [Exploratory data analysis]  
-3 [Topic modeling]  
-&nbsp;&nbsp;3.1 [Hyperparameters sweep]  
-&nbsp;&nbsp;3.2 [Topic labels]  
-&nbsp;&nbsp;3.3 [Covariates]  
-&nbsp;&nbsp;3.4 [Correlation map]  
-4 [Discussion]
+3 [Exploratory data analysis]  
+4 [Topic modeling]  
+&nbsp;&nbsp;4.1 [Hyperparameters sweep]  
+&nbsp;&nbsp;4.2 [Topic labels]  
+&nbsp;&nbsp;4.3 [Covariates]  
+&nbsp;&nbsp;4.4 [Correlation map]  
+5 [Discussion]
 
 ## Housekeepin'
 
