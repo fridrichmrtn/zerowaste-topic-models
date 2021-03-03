@@ -5,6 +5,8 @@ output: github_document
 
 > Martin Fridrich 03/2021
 
+The goal of this document is to preprocess the #zerowaste tweets, examine properties of the resulting dataset, find viable topic model, and present imprinted perspectives. The study is structured as follows:
+
 1 [Housekeepin']  
 2 [Data processing]  
 &nbsp;&nbsp;2.1 [Covariate, character & document-level processing]  
@@ -19,6 +21,8 @@ output: github_document
 5 [Discussion]
 
 ## Housekeepin'
+
+
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -198,24 +202,23 @@ gc()
 
 ## Exploratory data analysis
 
-```{r year_histogram, fig.align="center"}
+```{r year_histogram, fig.width=7, fig.height=4, fig.align="center"}
 # tweets per year
 hist(meta$year,
      main="no of tweets over years",
      xlab="year",
      #ylim=c(0,45000),
-     #breaks=11,
+     breaks=11,
      cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
 
-```{r char_tok_histograms, fig.align="center"}
+```{r char_tok_histograms, fig.width=7, fig.height=4, fig.align="center"}
 # tokens & chars per tweet
 n_chars = nchar(meta$text)
 n_tokens = stringr::str_count(meta$text, "\\w+")
 
 par(mfrow=c(1,2))
-
 hist(n_chars,
      main="no of characters per tweet",
      ylab="frequency",
@@ -232,7 +235,7 @@ hist(n_tokens,
      cex.lab=0.8)
 ```
 
-```{r tok_bars, fig.align="center"}
+```{r tok_bars, fig.width=7, fig.height=5, fig.align="center"}
 # the most frequent tokens
 freq_df = data.frame(doc) %>% data.table::transpose() %>%
   select(token=V1,count=V2) %>% group_by(token) %>%
@@ -240,17 +243,13 @@ freq_df = data.frame(doc) %>% data.table::transpose() %>%
   mutate(token=voc[token])
 
 par(mfrow=c(1,2))
-
 hist(x=log10(freq_df$count), main="Token frequency",
   ylab="frequency", xlab="log10 count", breaks=25,
-  cex.lab=0.8, cex.main=0.8, cex=0.8)
-
+  cex.lab=0.8, cex.main=0.8, cex.axis=0.8)
 with(tail(freq_df, 20),
   barplot(height = log10(count),
   names.arg=token, main="20 most frequent tokens", xlab="log10 count",
-  horiz = T, las=2,
-  cex.names=0.8, cex.lab=0.8,
-  cex.main=0.8, cex=0.8))
+  horiz = T, las=2, cex.names=0.8, cex.lab=0.8, cex.main=0.8, cex.axis=0.8))
 ```
 
 ## Topic modeling

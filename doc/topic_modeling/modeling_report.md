@@ -3,6 +3,10 @@
 
 > Martin Fridrich 03/2021
 
+The goal of this document is to preprocess the \#zerowaste tweets,
+examine properties of the resulting dataset, find viable topic model,
+and present imprinted perspectives. The study is structured as follows:
+
 1 [Housekeepin’](#housekeepin)  
 2 [Data processing](#data-processing)  
   2.1 [Covariate, character & document-level
@@ -201,7 +205,7 @@ hist(meta$year,
      main="no of tweets over years",
      xlab="year",
      #ylim=c(0,45000),
-     #breaks=11,
+     breaks=11,
      cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
@@ -213,7 +217,6 @@ n_chars = nchar(meta$text)
 n_tokens = stringr::str_count(meta$text, "\\w+")
 
 par(mfrow=c(1,2))
-
 hist(n_chars,
      main="no of characters per tweet",
      ylab="frequency",
@@ -240,17 +243,13 @@ freq_df = data.frame(doc) %>% data.table::transpose() %>%
   mutate(token=voc[token])
 
 par(mfrow=c(1,2))
-
 hist(x=log10(freq_df$count), main="Token frequency",
   ylab="frequency", xlab="log10 count", breaks=25,
-  cex.lab=0.8, cex.main=0.8, cex=0.8)
-
+  cex.lab=0.8, cex.main=0.8, cex.axis=0.8)
 with(tail(freq_df, 20),
   barplot(height = log10(count),
   names.arg=token, main="20 most frequent tokens", xlab="log10 count",
-  horiz = T, las=2,
-  cex.names=0.8, cex.lab=0.8,
-  cex.main=0.8, cex=0.8))
+  horiz = T, las=2, cex.names=0.8, cex.lab=0.8, cex.main=0.8, cex.axis=0.8))
 ```
 
 <img src="modeling_report_files/figure-gfm/tok_bars-1.png" style="display: block; margin: auto;" />
