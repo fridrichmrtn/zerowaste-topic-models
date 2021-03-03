@@ -1,35 +1,25 @@
----
-title: "#zerowaste subset - topic modeling report"
-output: github_document
----
+\#zerowaste subset - topic modeling report
+================
 
-> Martin Fridrich 03/2021
+> Martin Fridrich 02/2020
 
-1 [Housekeepin']  
-2 [Data processing]  
-&nbsp;&nbsp;2.1 [Covariate, character & document-level processing]  
-&nbsp;&nbsp;2.2 [Token-level processing]  
-&nbsp;&nbsp;2.3 [Execution]  
-2 [Exploratory data analysis]  
-3 [Topic modeling]  
-&nbsp;&nbsp;3.1 [Hyperparameters sweep]  
-&nbsp;&nbsp;3.2 [Topic labels]  
-&nbsp;&nbsp;3.3 [Covariates]  
-&nbsp;&nbsp;3.4 [Correlation map]  
-4 [Discussion]
+1 [Housekeepin’](#housekeepin)  
+2 [Data processing](#data-processing)  
+  2.1 [Covariate, character & document-level
+processing](#covariate-character-document-level-processing)  
+  2.2 [Token-level processing](#token-level-processing)  
+  2.3 [Execution](#execution)  
+2 [Exploratory data analysis](#exploratory-data-analysis)  
+3 [Topic modeling](#topic-modeling)  
+  3.1 [Hyperparameters sweep](#hyperparameters-sweep)  
+  3.2 [Topic labels](#topic-labels)  
+  3.3 [Covariates](#covariates)  
+  3.4 [Correlation map](#correlation-map)  
+4 [Discussion](#discussion)
 
-## Housekeepin'
+## Housekeepin’
 
-```{r setup, include=FALSE}
-library(tidyverse)
-library(parallel)
-library(stm)
-library(igraph)
-library(tidygraph)
-library(ggraph)
-```
-
-```{r}
+``` r
 data_dir = "..//..//data//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
@@ -43,12 +33,27 @@ raw_tweets = raw_tweets %>% janitor::clean_names() %>% as.data.frame()
 as_tibble(head(raw_tweets))
 ```
 
-## Data processing
+    ## # A tibble: 6 x 25
+    ##        id name  screen_name user_id user_lang user_verified date     id_2 text 
+    ##   <int64> <chr> <chr>       <int64> <lgl>     <lgl>         <chr> <int64> <chr>
+    ## 1 8.00e17 Clar… clarebeart… 2.00e 9 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 2 8.00e17 Alhy… alhykwood   2.00e 8 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 3 8.00e17 Ary … ary_is_mail 2.00e 8 NA        FALSE         Sat … 8.00e17 Kesa…
+    ## 4 8.00e17 Mayo… SFMONS      1.00e 8 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 5 8.00e17 Star… startupVon… 7.00e17 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 6 8.00e17 Fair… FWPaddler   4.00e 9 NA        FALSE         Sat … 8.00e17 The …
+    ## # … with 16 more variables: text_truncated <lgl>, lang <chr>, source <chr>,
+    ## #   reply_count <int>, favorite_count <int>, quote_count <int>,
+    ## #   user_location <chr>, derived_location <chr>, text_full <chr>,
+    ## #   hashtags <chr>, in_retweet_to_id <int64>, in_retweet_to <chr>,
+    ## #   in_retweet_to_user <chr>, in_quote_to_id <int64>, in_quote_to <chr>,
+    ## #   in_quote_to_user <chr>
 
+## Data processing
 
 ### Covariate, character & document-level processing
 
-```{r}
+``` r
 # covariate-level
 purge_covs = function(doc_df){
   # form date cov
@@ -88,7 +93,7 @@ purge_docs = function(doc_df){
 
 ### Token-level processing
 
-```{r}
+``` r
 # get udpipe model
 get_udpipe_model = function(lang="english-ewt", dir="..//..//data//"){
   require(udpipe)
@@ -154,7 +159,7 @@ purge_annot = function(doc_df){
 
 ### Execution
 
-```{r eval=F}
+``` r
 st = Sys.time()
 print("Entering processing stage...")
 
@@ -173,13 +178,12 @@ tweets = purge_annot(tweets)
 
 print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,"."))
 ```
-```{r echo=F}
-print("Entering processing stage...")
-print("The procedure finished in 18 mins.")
-```
 
+    ## [1] "Entering processing stage..."
 
-```{r eval=F}
+    ## [1] "The procedure finished in 18 mins."
+
+``` r
 processed = textProcessor(documents=tweets$text,
   metadata=tweets, lowercase=F, removestopwords=F,
   removenumbers=F, removepunctuation=F, stem=F)
@@ -189,16 +193,9 @@ voc = processed$vocab
 meta = processed$meta  
 ```
 
-```{r include=F}
-#rm(list=setdiff(ls(), c("doc","voc", "meta")))
-#save(file="..//..//data//sat.RData", list=c("doc","voc", "meta"))
-load(file="..//..//data//sat.RData")
-gc()
-```
-
 ## Exploratory data analysis
 
-```{r year_histogram, fig.align="center"}
+``` r
 # tweets per year
 hist(meta$year,
      main="no of tweets over years",
@@ -208,8 +205,9 @@ hist(meta$year,
      cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
+<img src="modeling_report_files/figure-gfm/year_histogram-1.png" style="display: block; margin: auto;" />
 
-```{r char_tok_histograms, fig.align="center"}
+``` r
 # tokens & chars per tweet
 n_chars = nchar(meta$text)
 n_tokens = stringr::str_count(meta$text, "\\w+")
@@ -232,7 +230,9 @@ hist(n_tokens,
      cex.lab=0.8)
 ```
 
-```{r tok_bars, fig.align="center"}
+<img src="modeling_report_files/figure-gfm/char_tok_histograms-1.png" style="display: block; margin: auto;" />
+
+``` r
 # the most frequent tokens
 freq_df = data.frame(doc) %>% data.table::transpose() %>%
   select(token=V1,count=V2) %>% group_by(token) %>%
@@ -253,11 +253,13 @@ with(tail(freq_df, 20),
   cex.main=0.8, cex=0.8))
 ```
 
+<img src="modeling_report_files/figure-gfm/tok_bars-1.png" style="display: block; margin: auto;" />
+
 ## Topic modeling
 
 ### Hyperparameters sweep
 
-```{r eval=F}
+``` r
 evaluate_topics = function(k, doc, voc, meta){
   require(stm, quietly=T)
   fit = stm(documents=doc, vocab=voc, data=meta,
@@ -278,7 +280,7 @@ colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
 
-```{r eval=F, fig.align="center"}
+``` r
 # plotting & selection
 
 # min-max lin scale
@@ -305,7 +307,7 @@ for(r in 1:nrow(sweep_df)){
     cex=0.75, col = ifelse(sweep_df$dist[r]<=max_dist,"red","black"))}
 ```
 
-```{r eval=F}
+``` r
 stm_model = stm(documents=doc, vocab=voc, data=meta,
   prevalence=~year+state+year*state, verbose=F, K=8)
 
@@ -315,25 +317,21 @@ toprint = sprintf("We fit a topic model with %i topics, %i documents and a %i wo
 cat(toprint)
 ```
 
-```{r echo=F}
-#save(file="..//..//data//stm_fit.RData", list=c("stm_model"))
-load(file="..//..//data//stm_fit.RData")
-toprint = sprintf("We fit a topic model with %i topics, %i documents and a %i word dictionary. \n In addition, the model's semantic coherence is %f and its exclusivity is %f. \n", 
-  stm_model$settings$dim$K, stm_model$settings$dim$N, stm_model$settings$dim$V,
-  mean(semanticCoherence(stm_model, doc)), mean(exclusivity(stm_model)))
-cat(toprint)
-```
+    ## We fit a topic model with 8 topics, 155478 documents and a 12385 word dictionary. 
+    ##  In addition, the model's semantic coherence is -131.830973 and its exclusivity is 9.417619.
 
-### Topic labels
+#### Topic labels
 
-```{r topic_prevalence, fig.width=7.5, fig.height=3.5, fig.align="center"}
+``` r
 # topic prevalence & props
 par(mar=c(4,1,2,1))
 plot(stm_model, type='summary', labeltype='prob',
   cex.lab=0.8, cex.axis=0.8, text.cex=0.8, cex.main=0.8, n=5)
 ```
 
-```{r topic_labeling, fig.width=8, fig.height=25, fig.align="center"}
+<img src="modeling_report_files/figure-gfm/topic_prevalence-1.png" style="display: block; margin: auto;" />
+
+``` r
 par(mfrow=c(4,1), mar=c(1,1,1,1))
 plot(stm_model, type="labels", labeltype = "prob", main="proba",
   cex.main=1.3, text.cex=1.3, n=15)
@@ -345,7 +343,9 @@ plot(stm_model, type="labels", labeltype = "score", main="score",
   cex.main=1.3, text.cex=1.3, n=15)
 ```
 
-```{r}
+<img src="modeling_report_files/figure-gfm/topic_labeling-1.png" style="display: block; margin: auto;" />
+
+``` r
 # top tweets per topic
 ft = findThoughts(stm_model, texts=meta$text, topics=1:stm_model$settings$dim$K,
   thresh=0.5, meta=meta)
@@ -358,19 +358,29 @@ ft_df[,c("topic", "year", "state", "raw_text")] %>%
   mutate(raw_text=substr(raw_text,1,70)) %>% as_tibble()
 ```
 
-### Covariates
+    ## # A tibble: 24 x 4
+    ##    topic    year state       raw_text                                           
+    ##    <chr>   <dbl> <chr>       <chr>                                              
+    ##  1 Topic 1  2019 United Sta… "DSNY Begins Enforcement of Expanded Organic Waste…
+    ##  2 Topic 1  2019 United Sta… "New #SF mandate requires waste audits for city wa…
+    ##  3 Topic 1  2018 United Sta… "27 Organizations in New York City Combating Food …
+    ##  4 Topic 2  2019 United Sta… "🌎 Bring reusable bags to the grocery. Use cloth p…
+    ##  5 Topic 2  2017 United Kin… "A tax on single use plastic bottles would help to…
+    ##  6 Topic 2  2019 United Kin… "@Specialized_UK Horrified by this unnecessary amo…
+    ##  7 Topic 3  2011 United Kin… "Earlier I wretched live on the @greenerleith podc…
+    ##  8 Topic 3  2011 United Kin… "Follow @nicholaann's zero waste challenge on her …
+    ##  9 Topic 3  2011 United Kin… "@EdinReporter & so it is! Thanks (: cc @greenerle…
+    ## 10 Topic 4  2019 United Sta… "Do you like to sew? The Saratoga Springs Repair C…
+    ## # … with 14 more rows
 
-```{r eval=F}
+#### Covariates
+
+``` r
 ee = estimateEffect(1:stm_model$settings$dim$K ~ state + year + year*state, stm_model,
   meta=meta, documents=doc, uncertainty='Local', nsims=100)
 ```
 
-```{r echo=F}
-load(file="..//..//data//stm_ee.RData")
-#save(file="..//..//data//stm_ee.RData", list=c("ee"))
-```
-
-```{r state_difference, fig.width=9, fig.height=4, fig.align="center"}
+``` r
 # states
 plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference",
   covariate="state", cov.value1="United States", cov.value2 = "United Kingdom",
@@ -379,7 +389,9 @@ plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference"
   xlab = "diff", cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
-```{r linear_trends, fig.width=8, fig.height=16, fig.align="center"}
+<img src="modeling_report_files/figure-gfm/state_difference-1.png" style="display: block; margin: auto;" />
+
+``` r
 # trends
 par(mfrow=c(4,2))
 for (i in 1:stm_model$settings$dim$K){
@@ -394,9 +406,11 @@ for (i in 1:stm_model$settings$dim$K){
 legend("bottomright", c("United Kingdom", "United States"), lwd=1, col=c("red","blue"))
 ```
 
-### Correlation map
+<img src="modeling_report_files/figure-gfm/linear_trends-1.png" style="display: block; margin: auto;" />
 
-```{r corr_network, fig.width=8, fig.height=3.5, fig.align="center"}
+#### Correlation map
+
+``` r
 corr_mat = Hmisc::rcorr(stm_model$theta)
 edges = which(corr_mat$r>0 & corr_mat$r!=1 & corr_mat$P<=0.1, arr.ind = T)
 edges_df = as.data.frame(edges)
@@ -423,7 +437,6 @@ ggraph(tc_net, 'kk')+
   edge_width='Pearson\'s correlation', size='Average topic prevalance')
 ```
 
+<img src="modeling_report_files/figure-gfm/corr_network-1.png" style="display: block; margin: auto;" />
 
 ## Discussion
-
-> Martin Fridrich 03/2021
