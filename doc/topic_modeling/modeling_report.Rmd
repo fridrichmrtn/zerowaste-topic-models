@@ -213,7 +213,7 @@ hist(meta$year,
 ```
 
 
-```{r char_tok_histograms, fig.width=7, fig.height=4, fig.align="center"}
+```{r char_tok_histograms, fig.width=7, fig.height=5, fig.align="center"}
 # tokens & chars per tweet
 n_chars = nchar(meta$text)
 n_tokens = stringr::str_count(meta$text, "\\w+")
