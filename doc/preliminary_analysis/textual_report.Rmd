@@ -4,7 +4,7 @@ output:
   github_document
 ---
 
-> Martin Fridrich 02/2020 
+> Martin Fridrich 02/2021 
 
 This document presents textual aspects of #zerowaste tweets. Again, the analysis will serve as a cornerstone of downstream processing & modeling procedure. The paper is structured as follows:
 
@@ -379,4 +379,4 @@ From the co-occurrence network above, one can see all tokens clustered around th
  * Topic modeling & other covariates.
  * ...
 
-> Martin Fridrich 02/2020 
+> Martin Fridrich 02/2021 

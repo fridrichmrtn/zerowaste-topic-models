@@ -1,7 +1,7 @@
 \#zerowaste tweets - overall report
 ================
 
-> Martin Fridrich 01/2020
+> Martin Fridrich 01/2021
 
 This notebook aims to explore the \#zerowaste data and provide a reader
 with several insights. It will serve as a baseline for downstream
@@ -272,7 +272,7 @@ hist(log10(raw_tweets$quote_count),
 ![](overall_report_files/figure-gfm/interaction_histograms-1.png)<!-- -->
 
 The frequency distribution of user-interactions with the content are all
-strongly right-skewed. We consider including a total number of
+strongly right-skewed. We may consider including a total number of
 interactions as a somewhat straightforward measure of relevance.
 
 ``` r
@@ -334,4 +334,4 @@ observations & features. Moreover, we propose to employ hybrid model
 based on texts, tags & covariates. Thus, respective processing pipelines
 have to be designed and developed.
 
-> Martin Fridrich 01/2020
+> Martin Fridrich 01/2021

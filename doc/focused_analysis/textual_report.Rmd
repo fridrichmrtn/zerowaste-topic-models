@@ -4,7 +4,7 @@ output:
   github_document
 ---
 
-> Martin Fridrich 02/2020 
+> Martin Fridrich 02/2021 
 
 This document presents textual aspects of the #zerowaste subset. We focus on the distinct tweets written in English, with locations pinned down to the US or UK. Again, the analysis will serve as a cornerstone of downstream processing & modeling procedure. Besides, the document is structured as follows:
 
@@ -394,4 +394,4 @@ From the co-occurrence network above, one can see all tokens clustered around th
  * Topic modeling & other covariates.
  * ...
 
-> Martin Fridrich 02/2020 
+> Martin Fridrich 02/2021 

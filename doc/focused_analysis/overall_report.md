@@ -1,7 +1,7 @@
 \#zerowaste subset - overall report
 ================
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021
 
 This notebook aims to explore the pre-agreed subset of the \#zerowaste
 tweets concerning the analysis’s original dimensions. We focus on the
@@ -336,4 +336,4 @@ We eliminated most of the issues from the preliminary part of the
 research with straightforward refinement. However, the resulting subset
 needs to further analyzed concerning the textual content & topic models.
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021

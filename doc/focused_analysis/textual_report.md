@@ -1,7 +1,7 @@
 \#zerowaste subset - textual report
 ================
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021
 
 This document presents textual aspects of the \#zerowaste subset. We
 focus on the distinct tweets written in English, with locations pinned
@@ -474,4 +474,4 @@ adjacent tokens).
 -   Topic modeling & other covariates.
 -   …
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021

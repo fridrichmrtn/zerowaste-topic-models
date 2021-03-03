@@ -1,7 +1,7 @@
 \#zerowaste tweets - textual report
 ================
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021
 
 This document presents textual aspects of \#zerowaste tweets. Again, the
 analysis will serve as a cornerstone of downstream processing & modeling
@@ -203,7 +203,7 @@ plot_grams(toks,3)
 
 ![](textual_report_files/figure-gfm/gram_bars-3.png)<!-- -->
 
-In the left plot, we see that the most common uni-gram is the
+In the first plot, we see that the most common uni-gram is the
 `#zerowaste` token, followed by a couple of tokens related to common
 sentence composition. The bi-gram plot shows a similar story; however,
 we see the locality aspect represented by `#unitedkingdom_#zerowaste`,
@@ -457,4 +457,4 @@ describing disposable packaging (see the `plastic` and adjacent tokens).
 -   Topic modeling & other covariates.
 -   …
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 02/2021

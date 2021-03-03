@@ -4,7 +4,7 @@ output:
   github_document
 ---
 
-> Martin Fridrich 01/2020 
+> Martin Fridrich 01/2021 
 
 This notebook aims to explore the #zerowaste data and provide a reader with several insights. It will serve as a baseline for downstream transformation & modeling procedures. The structure of the analysis is as follows:
 
@@ -264,4 +264,4 @@ We would like to have detailed info regarding the data generation process. Some 
 
 Filtering based on account entities & different parameters for selection should be examined. This is necessary in order to eliminate irrelevant observations & features. Moreover, we propose to employ hybrid model based on texts, tags & covariates. Thus, respective processing pipelines have to be designed and developed.
 
-> Martin Fridrich 01/2020
+> Martin Fridrich 01/2021
