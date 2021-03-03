@@ -324,7 +324,7 @@ cat(toprint)
 ``` r
 # topic prevalence & props
 par(mar=c(4,1,2,1))
-plot(stm_model, type='summary', labeltype='prob',
+plot(stm_model, type='summary', labeltype='prob', main="top topics",
   cex.lab=0.8, cex.axis=0.8, text.cex=0.8, cex.main=0.8, n=5)
 ```
 
@@ -383,7 +383,7 @@ ee = estimateEffect(1:stm_model$settings$dim$K ~ state + year + year*state, stm_
 # states
 plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference",
   covariate="state", cov.value1="United States", cov.value2 = "United Kingdom",
-  xlim=c(-0.1,0.1), verbose.labels=F, main="Difference in topical prevalence between US & UK",
+  xlim=c(-0.1,0.1), verbose.labels=F, main="difference in topical prevalence between US & UK",
   labeltype="custom", custom.labels = paste0("T", 1:stm_model$settings$dim$K),
   xlab = "diff", cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
