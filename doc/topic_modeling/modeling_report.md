@@ -3,9 +3,9 @@
 
 > Martin Fridrich 03/2021
 
-The goal of this document is to preprocess the \#zerowaste tweets,
-examine properties of the resulting dataset, find viable topic model,
-and present imprinted perspectives. The study is structured as follows:
+This document aims to preprocess the \#zerowaste tweets, examine
+properties of the resulting dataset, find a viable topic model, and
+present imprinted perspectives. The study is structured as follows:
 
 1 [Housekeepin’](#housekeepin)  
 2 [Data processing](#data-processing)  
@@ -15,13 +15,17 @@ processing](#covariate-character-document-level-processing)
   2.3 [Execution](#execution)  
 3 [Exploratory data analysis](#exploratory-data-analysis)  
 4 [Topic modeling](#topic-modeling)  
-  4.1 [Hyperparameters sweep](#hyperparameters-sweep)  
+  4.1 [Hyperparameter sweep](#hyperparameter-sweep)  
   4.2 [Topic labels](#topic-labels)  
   4.3 [Covariates](#covariates)  
   4.4 [Correlation map](#correlation-map)  
-5 [Discussion](#discussion)
+5 [Next steps](#next-steps)
 
 ## Housekeepin’
+
+In the opening section, we load required libs, import raw CSV files &
+union them into the resulting data.frame. In addition, we sanitize the
+column names and present the overall structure of the dataset.
 
 ``` r
 data_dir = "..//..//data//"
@@ -54,6 +58,16 @@ as_tibble(head(raw_tweets))
     ## #   in_quote_to_user <chr>
 
 ## Data processing
+
+In this section, we outline and implement covariate, character, document
+& token level transformation steps. Covariates transformation include
+datetime conversion & state extraction. Character level processing
+transforms the tweets to lower case, removes XML tags, removes links,
+unusual characters, and collapses multiple spaces. Document-level
+processing is conservative; we keep only tweets written in English and
+originated in the US/UK. Consequently, we annotate the tokens with
+`udpipe` and retain only `VERB`, `ADJ` & `NOUN` observed in at least ten
+separate tweets.
 
 ### Covariate, character & document-level processing
 
@@ -163,6 +177,10 @@ purge_annot = function(doc_df){
 
 ### Execution
 
+The next code chunk applies the outlined transformation to the raw data.
+Pieces of character & token level processing are done in a parallel
+manner.
+
 ``` r
 st = Sys.time()
 print("Entering processing stage...")
@@ -187,6 +205,8 @@ print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,".")
 
     ## [1] "The procedure finished in 18 mins."
 
+Let’s construct the objects expected by the downstream STM model.
+
 ``` r
 processed = textProcessor(documents=tweets$text,
   metadata=tweets, lowercase=F, removestopwords=F,
@@ -199,6 +219,9 @@ meta = processed$meta
 
 ## Exploratory data analysis
 
+Within this section, we extract & examine selected properties of the
+processed tweets.
+
 ``` r
 # tweets per year
 hist(meta$year,
@@ -210,6 +233,10 @@ hist(meta$year,
 ```
 
 <img src="modeling_report_files/figure-gfm/year_histogram-1.png" style="display: block; margin: auto;" />
+
+In the plot above, we can see a steady incline until 2019, a decline
+since. The behavior is aligned with what we see in the original data
+set.
 
 ``` r
 # tokens & chars per tweet
@@ -235,6 +262,11 @@ hist(n_tokens,
 
 <img src="modeling_report_files/figure-gfm/char_tok_histograms-1.png" style="display: block; margin: auto;" />
 
+From the left plot, we can see that approx. half of the tweets are
+shorter than 80 chars. The right chart shows that 75 % of the tweets
+consist of 16 words or less. As a result, we have smaller & hopefully
+less cluttered texts.
+
 ``` r
 # the most frequent tokens
 freq_df = data.frame(doc) %>% data.table::transpose() %>%
@@ -243,7 +275,7 @@ freq_df = data.frame(doc) %>% data.table::transpose() %>%
   mutate(token=voc[token])
 
 par(mfrow=c(1,2))
-hist(x=log10(freq_df$count), main="Token frequency",
+hist(x=log10(freq_df$count), main="token frequency",
   ylab="frequency", xlab="log10 count", breaks=25,
   cex.lab=0.8, cex.main=0.8, cex.axis=0.8)
 with(tail(freq_df, 20),
@@ -253,10 +285,24 @@ with(tail(freq_df, 20),
 ```
 
 <img src="modeling_report_files/figure-gfm/tok_bars-1.png" style="display: block; margin: auto;" />
+The first plot (left) describes frequency per token; the distribution is
+heavily right-skewed, 75 % of the entities are not witnessed more than
+65. In the second plot (right), one can see the most common word tokens.
+The most popular token is `#zerowaste`; lemmas related to general
+sentence composition are successfully removed.
 
 ## Topic modeling
 
-### Hyperparameters sweep
+This section deals with several steps; we define the structural topic
+model and specific covariate formula, propose & implement
+straightforward optimization to estimate a satisfying number of topics.
+Also, we present several tools to aid human comprehension of the model.
+
+### Hyperparameter sweep
+
+In the next code chunk, we employ multiobjective grid-search
+optimization to find viable candidate models. The evaluation metrics
+involve exclusivity and semantic coherence.
 
 ``` r
 evaluate_topics = function(k, doc, voc, meta){
@@ -279,6 +325,9 @@ colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
 
+Consequently, L2 distance from the utopia point is estimated, and five
+models are selected (see in red).
+
 ``` r
 # plotting & selection
 
@@ -296,8 +345,8 @@ sweep_df$dist = ((1-sweep_df$frex_scaled)^2+(1-sweep_df$semcoh_scaled)^2)^(1/2)
 max_dist =  arrange(sweep_df, dist) %>% select(dist) %>% slice(5) %>% unlist()
 
 plot(x=sweep_df$semcoh_scaled, y=sweep_df$frex_scaled, type='n',
-     xlab='Semantic coherence',
-     ylab='Exclusivity',
+     xlab='semantic coherence',
+     ylab='exclusivity',
      cex.axis=0.75,
      cex.lab=0.75)
 
@@ -305,6 +354,10 @@ for(r in 1:nrow(sweep_df)){
   text(x=sweep_df$semcoh_scaled[r], y=sweep_df$frex_scaled[r], label=sweep_df$k[r],
     cex=0.75, col = ifelse(sweep_df$dist[r]<=max_dist,"red","black"))}
 ```
+
+Let’s build the topic model! Note the prevalence formula - we estimate
+topical prevalence as linear in time and allow for the first-order
+interactions.
 
 ``` r
 stm_model = stm(documents=doc, vocab=voc, data=meta,
@@ -321,14 +374,25 @@ cat(toprint)
 
 ### Topic labels
 
+First, we try to describe the topics with relevant tokens & texts. In
+the plot below, we can take a peek at topical prevalence & respective
+frequent entities.
+
 ``` r
 # topic prevalence & props
 par(mar=c(4,1,2,1))
 plot(stm_model, type='summary', labeltype='prob', main="top topics",
-  cex.lab=0.8, cex.axis=0.8, text.cex=0.8, cex.main=0.8, n=5)
+  xlab="expected topic proportions", cex.lab=0.8, cex.axis=0.8, text.cex=0.8,
+  cex.main=0.8, n=5)
 ```
 
 <img src="modeling_report_files/figure-gfm/topic_prevalence-1.png" style="display: block; margin: auto;" />
+
+There are, however, various techniques to identify exciting tokens
+within a latent factor Besides the observed probability, we include
+`frex`, `lift`, and `score` indicators to get descriptive lemmas (see
+the
+[vignette](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)).
 
 ``` r
 par(mfrow=c(4,1), mar=c(1,1,1,1))
@@ -343,6 +407,11 @@ plot(stm_model, type="labels", labeltype = "score", main="score",
 ```
 
 <img src="modeling_report_files/figure-gfm/topic_labeling-1.png" style="display: block; margin: auto;" />
+
+Furthermore, latent factors are examined from the perspective of the
+most representative documents. For each topic, we extract only tweets
+with a prevalence of 50 % or higher. For each tweet, original raw text
+is printed.
 
 ``` r
 # top tweets per topic
@@ -397,7 +466,7 @@ for (i in 1:stm_model$settings$dim$K){
   plot(ee, model=stm_model, topics=i, covariate="year", method="continuous",
     moderator="state", moderator.value = "United Kingdom", linecol="red",
     printlegend=F, ylim=c(-0.05,0.35), cex.axis=1.3, cex.lab=1.3, cex.main=1.3,
-    main=paste0("Topic ",i))
+    main=paste0("T ",i), ylab="expected topic proportions")
   plot(ee, model=stm_model, topics=i, covariate="year", method="continuous",
     moderator="state", moderator.value = "United States", linecol="blue",
     printlegend=F, add=T)
@@ -427,17 +496,17 @@ ggraph(tc_net, 'kk')+
   scale_edge_width(range = c(0.5, 2), breaks = c(0.1,0.2,0.3))+
   geom_node_point(aes(size=proportion))+
   scale_size(range = c(0.5, 2), breaks = c(0.125, 0.15, 0.175))+
-  geom_node_text(aes(label=paste0("Topic ", name)), size=4, repel=T)+
+  geom_node_text(aes(label=paste0("T ", name)), size=4, repel=T)+
   theme_graph(base_family = 'sans',
     background='white', plot_margin = margin(15, 15, 15, 15))+
   theme(legend.position="right",
     legend.title = element_text(size=10), legend.text=element_text(size=8))+
   labs(edge_alpha='Pearson\'s correlation',
-  edge_width='Pearson\'s correlation', size='Average topic prevalance')
+  edge_width='Pearson\'s correlation', size='topic prevalance')
 ```
 
 <img src="modeling_report_files/figure-gfm/corr_network-1.png" style="display: block; margin: auto;" />
 
-## Discussion
+## Next steps
 
 > Martin Fridrich 03/2021
