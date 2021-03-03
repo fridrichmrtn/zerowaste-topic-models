@@ -1,7 +1,7 @@
 \#zerowaste subset - topic modeling report
 ================
 
-> Martin Fridrich 02/2020
+> Martin Fridrich 03/2021
 
 1 [Housekeepin’](#housekeepin)  
 2 [Data processing](#data-processing)  
@@ -9,13 +9,13 @@
 processing](#covariate-character-document-level-processing)  
   2.2 [Token-level processing](#token-level-processing)  
   2.3 [Execution](#execution)  
-2 [Exploratory data analysis](#exploratory-data-analysis)  
-3 [Topic modeling](#topic-modeling)  
-  3.1 [Hyperparameters sweep](#hyperparameters-sweep)  
-  3.2 [Topic labels](#topic-labels)  
-  3.3 [Covariates](#covariates)  
-  3.4 [Correlation map](#correlation-map)  
-4 [Discussion](#discussion)
+3 [Exploratory data analysis](#exploratory-data-analysis)  
+4 [Topic modeling](#topic-modeling)  
+  4.1 [Hyperparameters sweep](#hyperparameters-sweep)  
+  4.2 [Topic labels](#topic-labels)  
+  4.3 [Covariates](#covariates)  
+  4.4 [Correlation map](#correlation-map)  
+5 [Discussion](#discussion)
 
 ## Housekeepin’
 
@@ -320,7 +320,7 @@ cat(toprint)
     ## We fit a topic model with 8 topics, 155478 documents and a 12385 word dictionary. 
     ##  In addition, the model's semantic coherence is -131.830973 and its exclusivity is 9.417619.
 
-#### Topic labels
+### Topic labels
 
 ``` r
 # topic prevalence & props
@@ -373,7 +373,7 @@ ft_df[,c("topic", "year", "state", "raw_text")] %>%
     ## 10 Topic 4  2019 United Sta… "Do you like to sew? The Saratoga Springs Repair C…
     ## # … with 14 more rows
 
-#### Covariates
+### Covariates
 
 ``` r
 ee = estimateEffect(1:stm_model$settings$dim$K ~ state + year + year*state, stm_model,
@@ -408,7 +408,7 @@ legend("bottomright", c("United Kingdom", "United States"), lwd=1, col=c("red","
 
 <img src="modeling_report_files/figure-gfm/linear_trends-1.png" style="display: block; margin: auto;" />
 
-#### Correlation map
+### Correlation map
 
 ``` r
 corr_mat = Hmisc::rcorr(stm_model$theta)
@@ -440,3 +440,5 @@ ggraph(tc_net, 'kk')+
 <img src="modeling_report_files/figure-gfm/corr_network-1.png" style="display: block; margin: auto;" />
 
 ## Discussion
+
+> Martin Fridrich 03/2021
