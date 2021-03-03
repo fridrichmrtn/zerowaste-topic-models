@@ -480,7 +480,7 @@ legend("bottomright", c("United Kingdom", "United States"), lwd=1, col=c("red","
 
 ``` r
 corr_mat = Hmisc::rcorr(stm_model$theta)
-edges = which(corr_mat$r>0 & corr_mat$r!=1 & corr_mat$P<=0.1, arr.ind = T)
+edges = which(corr_mat$r>0 & corr_mat$r!=1 & corr_mat$P<=0.05, arr.ind = T)
 edges_df = as.data.frame(edges)
 edges_df$value = corr_mat$r[edges]
 edges_df = edges_df[edges_df$row>edges_df$col,]
@@ -508,5 +508,24 @@ ggraph(tc_net, 'kk')+
 <img src="modeling_report_files/figure-gfm/corr_network-1.png" style="display: block; margin: auto;" />
 
 ## Next steps
+
+**Modeling**
+
+-   Consider plain modeling reports for all candidate models.
+-   …
+
+**Visualization**
+
+-   Consider extending communication/plotting options.
+-   Gather requirements on paper-quality plots (resolution, unified
+    communication style).
+-   …
+
+**Others**
+
+-   Discuss obtained results & used tools.
+-   Discuss hand-out format.
+-   Discuss time frame of the project.
+-   …
 
 > Martin Fridrich 03/2021
