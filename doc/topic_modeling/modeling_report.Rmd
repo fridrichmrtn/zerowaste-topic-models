@@ -291,9 +291,11 @@ colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
 
-```{r include=F}
+```{r echo=F}
 #save(file="..//..//data//stm_sweep.RData", list=c("sweep_df"))
 load(file="..//..//data//stm_sweep.RData")
+print("Starting hyperparam sweep for number of topics...")
+print("The procedure finished in 3.9 h.")
 ```
 
 Consequently, L2 distance from the utopia point is estimated, and five models are selected (see in red).
@@ -476,7 +478,7 @@ As a result, we can show two graph components of correlated topics - (1) clique 
 **Others**
 
 - Discuss obtained results & used tools.
-- Discuss time frame of the project.
+- Discuss the delivery time.
 - ...
 
 > Martin Fridrich 03/2021

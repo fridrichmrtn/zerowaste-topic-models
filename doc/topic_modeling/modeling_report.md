@@ -325,6 +325,10 @@ colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
 
+    ## [1] "Starting hyperparam sweep for number of topics..."
+
+    ## [1] "The procedure finished in 3.9 h."
+
 Consequently, L2 distance from the utopia point is estimated, and five
 models are selected (see in red).
 
@@ -547,7 +551,7 @@ clique `T1-T3-T4` and (2) `T7-T8`.
 **Others**
 
 -   Discuss obtained results & used tools.
--   Discuss time frame of the project.
+-   Discuss the delivery time.
 -   …
 
 > Martin Fridrich 03/2021
