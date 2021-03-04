@@ -296,7 +296,7 @@ sentence composition are successfully removed.
 This section deals with several steps; we define the structural topic
 model and specific covariate formula, propose & implement
 straightforward optimization to estimate a satisfying number of topics.
-Also, we present several tools to aid human comprehension of the model.
+In addition, we present tools to aid human comprehension of the model.
 
 ### Hyperparameter sweep
 
@@ -344,16 +344,17 @@ sweep_df[,c("semcoh_scaled", "frex_scaled")] = apply(sweep_df[,c('semcoh','frex'
 sweep_df$dist = ((1-sweep_df$frex_scaled)^2+(1-sweep_df$semcoh_scaled)^2)^(1/2)
 max_dist =  arrange(sweep_df, dist) %>% select(dist) %>% slice(5) %>% unlist()
 
+par(mar=c(4,4,2,1))
 plot(x=sweep_df$semcoh_scaled, y=sweep_df$frex_scaled, type='n',
-     xlab='semantic coherence',
-     ylab='exclusivity',
-     cex.axis=0.75,
-     cex.lab=0.75)
+  main="exclusivity & coherence trade-off",xlab='semantic coherence', ylab='exclusivity',
+  cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 
 for(r in 1:nrow(sweep_df)){
   text(x=sweep_df$semcoh_scaled[r], y=sweep_df$frex_scaled[r], label=sweep_df$k[r],
     cex=0.75, col = ifelse(sweep_df$dist[r]<=max_dist,"red","black"))}
 ```
+
+<img src="modeling_report_files/figure-gfm/sweep_tradeoff-1.png" style="display: block; margin: auto;" />
 
 Let’s build the topic model! Note the prevalence formula - we estimate
 topical prevalence as linear in time and allow for the first-order
@@ -443,6 +444,10 @@ ft_df[,c("topic", "year", "state", "raw_text")] %>%
 
 ### Covariates
 
+The structural topic models stand out to include external covariates to
+explain the observed topical prevalence. Thus, in the following code
+chunks, we present captured relationships.
+
 ``` r
 ee = estimateEffect(1:stm_model$settings$dim$K ~ state + year + year*state, stm_model,
   meta=meta, documents=doc, uncertainty='Local', nsims=100)
@@ -459,6 +464,16 @@ plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference"
 
 <img src="modeling_report_files/figure-gfm/state_difference-1.png" style="display: block; margin: auto;" />
 
+In the chart above, one can see the expected difference between factor
+prevalence in the US & UK. There are outlying cluster topics popular in
+the UK on the bottom left corner of the plot (`T7`, `T8`). We can see
+the subject more relevant for the US (`T1`).
+
+We are interested in changes in topic proportions over time to reflect
+that we assume a linear relationship between the variables such as
+`prevalence ~ year + state + state*year`; interaction allows for
+unparalleled line fits.
+
 ``` r
 # trends
 par(mfrow=c(4,2))
@@ -466,7 +481,7 @@ for (i in 1:stm_model$settings$dim$K){
   plot(ee, model=stm_model, topics=i, covariate="year", method="continuous",
     moderator="state", moderator.value = "United Kingdom", linecol="red",
     printlegend=F, ylim=c(-0.05,0.35), cex.axis=1.3, cex.lab=1.3, cex.main=1.3,
-    main=paste0("T ",i), ylab="expected topic proportions")
+    main=paste0("T",i), ylab="expected topic proportions")
   plot(ee, model=stm_model, topics=i, covariate="year", method="continuous",
     moderator="state", moderator.value = "United States", linecol="blue",
     printlegend=F, add=T)
@@ -477,6 +492,11 @@ legend("bottomright", c("United Kingdom", "United States"), lwd=1, col=c("red","
 <img src="modeling_report_files/figure-gfm/linear_trends-1.png" style="display: block; margin: auto;" />
 
 ### Correlation map
+
+The topic model allows for correlation between topics; positive
+correlation suggests that both subjects are likely to be discussed
+within one tweet. We construct a network with positive correlations
+between factors, where asymptotic p-value &lt; 0.05.
 
 ``` r
 corr_mat = Hmisc::rcorr(stm_model$theta)
@@ -496,7 +516,7 @@ ggraph(tc_net, 'kk')+
   scale_edge_width(range = c(0.5, 2), breaks = c(0.1,0.2,0.3))+
   geom_node_point(aes(size=proportion))+
   scale_size(range = c(0.5, 2), breaks = c(0.125, 0.15, 0.175))+
-  geom_node_text(aes(label=paste0("T ", name)), size=4, repel=T)+
+  geom_node_text(aes(label=paste0("T", name)), size=4, repel=T)+
   theme_graph(base_family = 'sans',
     background='white', plot_margin = margin(15, 15, 15, 15))+
   theme(legend.position="right",
@@ -506,6 +526,9 @@ ggraph(tc_net, 'kk')+
 ```
 
 <img src="modeling_report_files/figure-gfm/corr_network-1.png" style="display: block; margin: auto;" />
+
+As a result, we can show two graph components of correlated topics - (1)
+clique `T1-T3-T4` and (2) `T7-T8`.
 
 ## Next steps
 
@@ -524,7 +547,6 @@ ggraph(tc_net, 'kk')+
 **Others**
 
 -   Discuss obtained results & used tools.
--   Discuss hand-out format.
 -   Discuss time frame of the project.
 -   …
 
