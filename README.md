@@ -2,14 +2,6 @@
 
 The project's main scope is to examine, describe & understand exciting latent factors (topics) emerging within the #zerowaste Twitter data.
 
-## Links
-
- * [/doc/focused_analysis/overall_report.md](/doc/focused_analysis/overall_report.md)
- * [/doc/focused_analysis/textual_report.md](/doc/focused_analysis/textual_report.md)
- * [/doc/topic_modeling/modeling_report.md](/doc/topic_modeling/modeling_report.md)
-
-## Doc
-
 ```
 ├──doc
     ├── preliminary
@@ -21,3 +13,9 @@ The project's main scope is to examine, describe & understand exciting latent fa
     └── modeling
         └── modeling_report.md # first take on topic models
 ```
+
+## Links
+
+ * [/doc/focused_analysis/overall_report.md](/doc/focused_analysis/overall_report.md)
+ * [/doc/focused_analysis/textual_report.md](/doc/focused_analysis/textual_report.md)
+ * [/doc/topic_modeling/modeling_report.md](/doc/topic_modeling/modeling_report.md)
