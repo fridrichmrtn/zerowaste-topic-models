@@ -201,10 +201,6 @@ tweets = purge_annot(tweets)
 print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,"."))
 ```
 
-    ## [1] "Entering processing stage..."
-
-    ## [1] "The procedure finished in 18 mins."
-
 Let’s construct the objects expected by the downstream STM model.
 
 ``` r
@@ -324,10 +320,6 @@ print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,".")
 colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
-
-    ## [1] "Starting hyperparam sweep for number of topics..."
-
-    ## [1] "The procedure finished in 3.9 h."
 
 Consequently, L2 distance from the utopia point is estimated, and five
 models are selected (see in red).

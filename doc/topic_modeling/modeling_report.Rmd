@@ -181,10 +181,6 @@ tweets = purge_annot(tweets)
 print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,"."))
 ```
 
-```{r echo=F}
-print("Entering processing stage...")
-print("The procedure finished in 18 mins.")
-```
 Let's construct the objects expected by the downstream STM model.
 
 ```{r eval=F}
@@ -294,8 +290,6 @@ sweep_df = as.data.frame(t(sweep_df))
 ```{r echo=F}
 #save(file="..//..//data//stm_sweep.RData", list=c("sweep_df"))
 load(file="..//..//data//stm_sweep.RData")
-print("Starting hyperparam sweep for number of topics...")
-print("The procedure finished in 3.9 h.")
 ```
 
 Consequently, L2 distance from the utopia point is estimated, and five models are selected (see in red).
