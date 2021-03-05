@@ -25,7 +25,8 @@ This document aims to preprocess the #zerowaste tweets, examine properties of th
 In the opening section, we load required libs, import raw CSV files & union them into the resulting data.frame. In addition, we sanitize the column names and present the overall structure of the dataset.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.path="img/modeling-report/")
+knitr::opts_chunk$set(fig.path="img/modeling-report/",
+  cache.path="cache/modeling-report/")
 
 library(tidyverse)
 library(parallel)

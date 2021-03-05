@@ -17,14 +17,15 @@ This notebook aims to explore the #zerowaste data and provide a reader with seve
 ## Housekeepin'
 
 ```{r setup, include=F}
-knitr::opts_chunk$set(fig.path="img/overall-report/")
+knitr::opts_chunk$set(fig.path="img/overall-report/",
+  cache.path="cache/overall-report/")
 ```
 
 In the opening section, we digest raw CSV files & union them into the resulting `data.frame`. Moreover, we sanitize the column names and present the overall structure of the dataset.
 
 ```{r message=F, warning=F}
 library(tidyverse)
-data_dir = "..//..//data//"
+data_dir = "..//..//data//zerowaste//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
 
