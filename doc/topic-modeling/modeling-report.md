@@ -1,41 +1,33 @@
----
-title: "#zerowaste subset - topic modeling report"
-output: github_document
----
+\#zerowaste subset - topic modeling report
+================
 
 > Martin Fridrich 03/2021
 
-This document aims to preprocess the #zerowaste tweets, examine properties of the resulting dataset, find a viable topic model, and present imprinted perspectives. The study is structured as follows:
+This document aims to preprocess the \#zerowaste tweets, examine
+properties of the resulting dataset, find a viable topic model, and
+present imprinted perspectives. The study is structured as follows:
 
-1 [Housekeepin']  
-2 [Data processing]  
-&nbsp;&nbsp;2.1 [Covariate, character & document-level processing]  
-&nbsp;&nbsp;2.2 [Token-level processing]  
-&nbsp;&nbsp;2.3 [Execution]  
-3 [Exploratory data analysis]  
-4 [Topic modeling]  
-&nbsp;&nbsp;4.1 [Hyperparameter sweep]  
-&nbsp;&nbsp;4.2 [Topic labels]  
-&nbsp;&nbsp;4.3 [Covariates]  
-&nbsp;&nbsp;4.4 [Correlation map]  
-5 [Next steps]
+1 [Housekeepin’](#housekeepin)  
+2 [Data processing](#data-processing)  
+  2.1 [Covariate, character & document-level
+processing](#covariate-character-document-level-processing)  
+  2.2 [Token-level processing](#token-level-processing)  
+  2.3 [Execution](#execution)  
+3 [Exploratory data analysis](#exploratory-data-analysis)  
+4 [Topic modeling](#topic-modeling)  
+  4.1 [Hyperparameter sweep](#hyperparameter-sweep)  
+  4.2 [Topic labels](#topic-labels)  
+  4.3 [Covariates](#covariates)  
+  4.4 [Correlation map](#correlation-map)  
+5 [Next steps](#next-steps)
 
-## Housekeepin'
+## Housekeepin’
 
-In the opening section, we load required libs, import raw CSV files & union them into the resulting data.frame. In addition, we sanitize the column names and present the overall structure of the dataset.
+In the opening section, we load required libs, import raw CSV files &
+union them into the resulting data.frame. In addition, we sanitize the
+column names and present the overall structure of the dataset.
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.path="img/modeling-report/")
-
-library(tidyverse)
-library(parallel)
-library(stm)
-library(igraph)
-library(tidygraph)
-library(ggraph)
-```
-
-```{r}
+``` r
 data_dir = "..//..//data//zerowaste//"
 csv_to_load = paste0(data_dir, list.files(data_dir, pattern=".csv"))
 csv_ls = list()
@@ -49,13 +41,37 @@ raw_tweets = raw_tweets %>% janitor::clean_names() %>% as.data.frame()
 as_tibble(head(raw_tweets))
 ```
 
+    ## # A tibble: 6 x 25
+    ##        id name   screen_name user_id user_lang user_verified date     id_2 text 
+    ##   <int64> <chr>  <chr>       <int64> <lgl>     <lgl>         <chr> <int64> <chr>
+    ## 1 8.00e17 Clare… clarebeart… 2.00e 9 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 2 8.00e17 Alhy … alhykwood   2.00e 8 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 3 8.00e17 Ary I… ary_is_mail 2.00e 8 NA        FALSE         Sat … 8.00e17 Kesa…
+    ## 4 8.00e17 Mayor… SFMONS      1.00e 8 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 5 8.00e17 Start… startupVon… 7.00e17 NA        FALSE         Sat … 8.00e17 RT @…
+    ## 6 8.00e17 Fairw… FWPaddler   4.00e 9 NA        FALSE         Sat … 8.00e17 The …
+    ## # … with 16 more variables: text_truncated <lgl>, lang <chr>, source <chr>,
+    ## #   reply_count <int>, favorite_count <int>, quote_count <int>,
+    ## #   user_location <chr>, derived_location <chr>, text_full <chr>,
+    ## #   hashtags <chr>, in_retweet_to_id <int64>, in_retweet_to <chr>,
+    ## #   in_retweet_to_user <chr>, in_quote_to_id <int64>, in_quote_to <chr>,
+    ## #   in_quote_to_user <chr>
+
 ## Data processing
 
-In this section, we outline and implement covariate, character, document & token level transformation steps. Covariates transformation include datetime conversion & state extraction. Character level processing transforms the tweets to lower case, removes XML tags, removes links, unusual characters, and collapses multiple spaces. Document-level processing is conservative; we keep only tweets written in English and originated in the US/UK. Consequently, we annotate the tokens with `udpipe` and retain only `VERB`, `ADJ` & `NOUN` observed in at least ten separate tweets.
+In this section, we outline and implement covariate, character, document
+& token level transformation steps. Covariates transformation include
+datetime conversion & state extraction. Character level processing
+transforms the tweets to lower case, removes XML tags, removes links,
+unusual characters, and collapses multiple spaces. Document-level
+processing is conservative; we keep only tweets written in English and
+originated in the US/UK. Consequently, we annotate the tokens with
+`udpipe` and retain only `VERB`, `ADJ` & `NOUN` observed in at least ten
+separate tweets.
 
 ### Covariate, character & document-level processing
 
-```{r}
+``` r
 # covariate-level
 purge_covs = function(doc_df){
   # form date cov
@@ -95,7 +111,7 @@ purge_docs = function(doc_df){
 
 ### Token-level processing
 
-```{r}
+``` r
 # get udpipe model
 get_udpipe_model = function(lang="english-ewt", dir="..//..//data//"){
   require(udpipe)
@@ -161,9 +177,11 @@ purge_annot = function(doc_df){
 
 ### Execution
 
-The next code chunk applies the outlined transformation to the raw data. Pieces of character & token level processing are done in a parallel manner.
+The next code chunk applies the outlined transformation to the raw data.
+Pieces of character & token level processing are done in a parallel
+manner.
 
-```{r eval=F}
+``` r
 st = Sys.time()
 print("Entering processing stage...")
 
@@ -183,9 +201,9 @@ tweets = purge_annot(tweets)
 print(paste0("The procedure finished in ", format(Sys.time()-st, digits=2) ,"."))
 ```
 
-Let's construct the objects expected by the downstream STM model.
+Let’s construct the objects expected by the downstream STM model.
 
-```{r eval=F}
+``` r
 processed = textProcessor(documents=tweets$text,
   metadata=tweets, lowercase=F, removestopwords=F,
   removenumbers=F, removepunctuation=F, stem=F)
@@ -195,18 +213,12 @@ voc = processed$vocab
 meta = processed$meta  
 ```
 
-```{r include=F}
-#rm(list=setdiff(ls(), c("doc","voc", "meta")))
-#save(file="..//..//data//sat.RData", list=c("doc","voc", "meta"))
-load(file="..//..//data//sat.RData")
-gc()
-```
-
 ## Exploratory data analysis
 
-Within this section, we extract & examine selected properties of the processed tweets.
+Within this section, we extract & examine selected properties of the
+processed tweets.
 
-```{r year_histogram, fig.width=7, fig.height=4, fig.align="center"}
+``` r
 # tweets per year
 hist(meta$year,
      main="no of tweets over years",
@@ -216,9 +228,13 @@ hist(meta$year,
      cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
-In the plot above, we can see a steady incline until 2019, a decline since. The behavior is aligned with what we see in the original data set.
+<img src="img/modeling-report/year_histogram-1.png" style="display: block; margin: auto;" />
 
-```{r char_tok_histograms, fig.width=7, fig.height=5, fig.align="center"}
+In the plot above, we can see a steady incline until 2019, a decline
+since. The behavior is aligned with what we see in the original data
+set.
+
+``` r
 # tokens & chars per tweet
 n_chars = nchar(meta$text)
 n_tokens = stringr::str_count(meta$text, "\\w+")
@@ -240,9 +256,14 @@ hist(n_tokens,
      cex.lab=0.8)
 ```
 
-From the left plot, we can see that approx. half of the tweets are shorter than 80 chars. The right chart shows that 75 % of the tweets consist of 16 words or less. As a result, we have smaller & hopefully less cluttered texts.
+<img src="img/modeling-report/char_tok_histograms-1.png" style="display: block; margin: auto;" />
 
-```{r tok_bars, fig.width=7, fig.height=5, fig.align="center"}
+From the left plot, we can see that approx. half of the tweets are
+shorter than 80 chars. The right chart shows that 75 % of the tweets
+consist of 16 words or less. As a result, we have smaller & hopefully
+less cluttered texts.
+
+``` r
 # the most frequent tokens
 freq_df = data.frame(doc) %>% data.table::transpose() %>%
   select(token=V1,count=V2) %>% group_by(token) %>%
@@ -258,17 +279,28 @@ with(tail(freq_df, 20),
   names.arg=token, main="20 most frequent tokens", xlab="log10 count",
   horiz = T, las=2, cex.names=0.8, cex.lab=0.8, cex.main=0.8, cex.axis=0.8))
 ```
-The first plot (left) describes frequency per token; the distribution is heavily right-skewed, 75 % of the entities are not witnessed more than 65. In the second plot (right), one can see the most common word tokens. The most popular token is `#zerowaste`; lemmas related to general sentence composition are successfully removed.
+
+<img src="img/modeling-report/tok_bars-1.png" style="display: block; margin: auto;" />
+The first plot (left) describes frequency per token; the distribution is
+heavily right-skewed, 75 % of the entities are not witnessed more than
+65. In the second plot (right), one can see the most common word tokens.
+The most popular token is `#zerowaste`; lemmas related to general
+sentence composition are successfully removed.
 
 ## Topic modeling
 
-This section deals with several steps; we define the structural topic model and specific covariate formula, propose & implement straightforward optimization to estimate a satisfying number of topics. In addition, we present tools to aid human comprehension of the model.
+This section deals with several steps; we define the structural topic
+model and specific covariate formula, propose & implement
+straightforward optimization to estimate a satisfying number of topics.
+In addition, we present tools to aid human comprehension of the model.
 
 ### Hyperparameter sweep
 
-In the next code chunk, we employ multiobjective grid-search optimization to find viable candidate models. The evaluation metrics involve exclusivity and semantic coherence.
+In the next code chunk, we employ multiobjective grid-search
+optimization to find viable candidate models. The evaluation metrics
+involve exclusivity and semantic coherence.
 
-```{r eval=F}
+``` r
 evaluate_topics = function(k, doc, voc, meta){
   require(stm, quietly=T)
   fit = stm(documents=doc, vocab=voc, data=meta,
@@ -289,14 +321,10 @@ colnames(sweep_df) = NULL; rownames(sweep_df) = c("k", "semcoh", "frex");
 sweep_df = as.data.frame(t(sweep_df))
 ```
 
-```{r echo=F}
-#save(file="..//..//data//stm-sweep.RData", list=c("sweep_df"))
-load(file="..//..//data//stm-sweep.RData")
-```
+Consequently, L2 distance from the utopia point is estimated, and five
+models are selected (see in red).
 
-Consequently, L2 distance from the utopia point is estimated, and five models are selected (see in red).
-
-```{r sweep_tradeoff, fig.width=7.5, fig.height=3.5, fig.align="center"}
+``` r
 # plotting & selection
 
 # min-max lin scale
@@ -322,9 +350,13 @@ for(r in 1:nrow(sweep_df)){
     cex=0.75, col = ifelse(sweep_df$dist[r]<=max_dist,"red","black"))}
 ```
 
-Let's build the topic model! Note the prevalence formula - we estimate topical prevalence as linear in time and allow for the first-order interactions.
+<img src="img/modeling-report/sweep_tradeoff-1.png" style="display: block; margin: auto;" />
 
-```{r eval=F}
+Let’s build the topic model! Note the prevalence formula - we estimate
+topical prevalence as linear in time and allow for the first-order
+interactions.
+
+``` r
 stm_model = stm(documents=doc, vocab=voc, data=meta,
   prevalence=~year+state+year*state, verbose=F, K=8)
 
@@ -333,20 +365,17 @@ toprint = sprintf("We fit a topic model with %i topics, %i documents and a %i wo
   mean(semanticCoherence(stm_model, doc)), mean(exclusivity(stm_model)))
 cat(toprint)
 ```
-```{r echo=F}
-#save(file="..//..//data//stm-fit.RData", list=c("stm_model"))
-load(file="..//..//data//stm-fit.RData")
-toprint = sprintf("We fit a topic model with %i topics, %i documents and a %i word dictionary. \n In addition, the model's semantic coherence is %f and its exclusivity is %f. \n", 
-  stm_model$settings$dim$K, stm_model$settings$dim$N, stm_model$settings$dim$V,
-  mean(semanticCoherence(stm_model, doc)), mean(exclusivity(stm_model)))
-cat(toprint)
-```
+
+    ## We fit a topic model with 8 topics, 155478 documents and a 12385 word dictionary. 
+    ##  In addition, the model's semantic coherence is -131.830973 and its exclusivity is 9.417619.
 
 ### Topic labels
 
-First, we try to describe the topics with relevant tokens & texts. In the plot below, we can take a peek at topical prevalence & respective frequent entities.
+First, we try to describe the topics with relevant tokens & texts. In
+the plot below, we can take a peek at topical prevalence & respective
+frequent entities.
 
-```{r topic_prevalence, fig.width=7.5, fig.height=3.5, fig.align="center"}
+``` r
 # topic prevalence & props
 par(mar=c(4,1,2,1))
 plot(stm_model, type='summary', labeltype='prob', main="top topics",
@@ -354,9 +383,15 @@ plot(stm_model, type='summary', labeltype='prob', main="top topics",
   cex.main=0.8, n=5)
 ```
 
-There are, however, various techniques to identify exciting tokens within a latent factor Besides the observed probability, we include `frex`, `lift`, and `score` indicators to get descriptive lemmas (see the [vignette](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)).
+<img src="img/modeling-report/topic_prevalence-1.png" style="display: block; margin: auto;" />
 
-```{r topic_labeling, fig.width=8, fig.height=25, fig.align="center"}
+There are, however, various techniques to identify exciting tokens
+within a latent factor Besides the observed probability, we include
+`frex`, `lift`, and `score` indicators to get descriptive lemmas (see
+the
+[vignette](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)).
+
+``` r
 par(mfrow=c(4,1), mar=c(1,1,1,1))
 plot(stm_model, type="labels", labeltype = "prob", main="proba",
   cex.main=1.3, text.cex=1.3, n=15)
@@ -368,9 +403,14 @@ plot(stm_model, type="labels", labeltype = "score", main="score",
   cex.main=1.3, text.cex=1.3, n=15)
 ```
 
-Furthermore, latent factors are examined from the perspective of the most representative documents. For each topic, we extract only tweets with a prevalence of 50 % or higher. For each tweet, original raw text is printed.
+<img src="img/modeling-report/topic_labeling-1.png" style="display: block; margin: auto;" />
 
-```{r}
+Furthermore, latent factors are examined from the perspective of the
+most representative documents. For each topic, we extract only tweets
+with a prevalence of 50 % or higher. For each tweet, original raw text
+is printed.
+
+``` r
 # top tweets per topic
 ft = findThoughts(stm_model, texts=meta$text, topics=1:stm_model$settings$dim$K,
   thresh=0.5, meta=meta)
@@ -383,21 +423,33 @@ ft_df[,c("topic", "year", "state", "raw_text")] %>%
   mutate(raw_text=substr(raw_text,1,70)) %>% as_tibble()
 ```
 
+    ## # A tibble: 24 x 4
+    ##    topic    year state       raw_text                                           
+    ##    <chr>   <dbl> <chr>       <chr>                                              
+    ##  1 Topic 1  2019 United Sta… "DSNY Begins Enforcement of Expanded Organic Waste…
+    ##  2 Topic 1  2019 United Sta… "New #SF mandate requires waste audits for city wa…
+    ##  3 Topic 1  2018 United Sta… "27 Organizations in New York City Combating Food …
+    ##  4 Topic 2  2019 United Sta… "🌎 Bring reusable bags to the grocery. Use cloth p…
+    ##  5 Topic 2  2017 United Kin… "A tax on single use plastic bottles would help to…
+    ##  6 Topic 2  2019 United Kin… "@Specialized_UK Horrified by this unnecessary amo…
+    ##  7 Topic 3  2011 United Kin… "Earlier I wretched live on the @greenerleith podc…
+    ##  8 Topic 3  2011 United Kin… "Follow @nicholaann's zero waste challenge on her …
+    ##  9 Topic 3  2011 United Kin… "@EdinReporter & so it is! Thanks (: cc @greenerle…
+    ## 10 Topic 4  2019 United Sta… "Do you like to sew? The Saratoga Springs Repair C…
+    ## # … with 14 more rows
+
 ### Covariates
 
-The structural topic models stand out to include external covariates to explain the observed topical prevalence. Thus, in the following code chunks, we present captured relationships.
+The structural topic models stand out to include external covariates to
+explain the observed topical prevalence. Thus, in the following code
+chunks, we present captured relationships.
 
-```{r eval=F}
+``` r
 ee = estimateEffect(1:stm_model$settings$dim$K ~ state + year + year*state, stm_model,
   meta=meta, documents=doc, uncertainty='Local', nsims=100)
 ```
 
-```{r echo=F}
-load(file="..//..//data//stm-ee.RData")
-#save(file="..//..//data//stm-ee.RData", list=c("ee"))
-```
-
-```{r state_difference, fig.width=9, fig.height=4, fig.align="center"}
+``` r
 # states
 plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference",
   covariate="state", cov.value1="United States", cov.value2 = "United Kingdom",
@@ -406,11 +458,19 @@ plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference"
   xlab = "diff", cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
-In the chart above, one can see the expected difference between factor prevalence in the US & UK. There are outlying cluster topics popular in the UK on the bottom left corner of the plot (`T7`, `T8`). We can see the subject more relevant for the US (`T1`).
+<img src="img/modeling-report/state_difference-1.png" style="display: block; margin: auto;" />
 
-We are interested in changes in topic proportions over time to reflect that we assume a linear relationship between the variables such as `prevalence ~ year + state + state*year`; interaction allows for unparalleled line fits.
+In the chart above, one can see the expected difference between factor
+prevalence in the US & UK. There are outlying cluster topics popular in
+the UK on the bottom left corner of the plot (`T7`, `T8`). We can see
+the subject more relevant for the US (`T1`).
 
-```{r linear_trends, fig.width=8, fig.height=16, fig.align="center"}
+We are interested in changes in topic proportions over time to reflect
+that we assume a linear relationship between the variables such as
+`prevalence ~ year + state + state*year`; interaction allows for
+unparalleled line fits.
+
+``` r
 # trends
 par(mfrow=c(4,2))
 for (i in 1:stm_model$settings$dim$K){
@@ -425,11 +485,16 @@ for (i in 1:stm_model$settings$dim$K){
 legend("bottomright", c("United Kingdom", "United States"), lwd=1, col=c("red","blue"))
 ```
 
+<img src="img/modeling-report/linear_trends-1.png" style="display: block; margin: auto;" />
+
 ### Correlation map
 
-The topic model allows for correlation between topics; positive correlation suggests that both subjects are likely to be discussed within one tweet. We construct a network with positive correlations between factors, where asymptotic p-value < 0.05.
+The topic model allows for correlation between topics; positive
+correlation suggests that both subjects are likely to be discussed
+within one tweet. We construct a network with positive correlations
+between factors, where asymptotic p-value &lt; 0.05.
 
-```{r corr_network, fig.width=8, fig.height=3.5, fig.align="center"}
+``` r
 corr_mat = Hmisc::rcorr(stm_model$theta)
 edges = which(corr_mat$r>0 & corr_mat$r!=1 & corr_mat$P<=0.05, arr.ind = T)
 edges_df = as.data.frame(edges)
@@ -456,25 +521,29 @@ ggraph(tc_net, 'kk')+
   edge_width='Pearson\'s correlation', size='topic prevalance')
 ```
 
-As a result, we can show two graph components of correlated topics - (1) clique `T1-T3-T4` and (2) `T7-T8`. 
+<img src="img/modeling-report/corr_network-1.png" style="display: block; margin: auto;" />
+
+As a result, we can show two graph components of correlated topics - (1)
+clique `T1-T3-T4` and (2) `T7-T8`.
 
 ## Next steps
 
-**Modeling**  
+**Modeling**
 
-- Consider plain modeling reports for all candidate models. 
-- ...
+-   Consider plain modeling reports for all candidate models.
+-   …
 
-**Visualization**  
+**Visualization**
 
-- Consider extending communication/plotting options.
-- Gather requirements on paper-quality plots (resolution, unified communication style).
-- ...
+-   Consider extending communication/plotting options.
+-   Gather requirements on paper-quality plots (resolution, unified
+    communication style).
+-   …
 
 **Others**
 
-- Discuss obtained results & used tools.
-- Discuss the delivery time.
-- ...
+-   Discuss obtained results & used tools.
+-   Discuss the delivery time.
+-   …
 
 > Martin Fridrich 03/2021
