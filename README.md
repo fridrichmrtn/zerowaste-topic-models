@@ -8,10 +8,10 @@ The project's main scope is to examine, describe & understand exciting latent fa
     │   ├── overall-report.md # full dataset
     │   └── textual-report.md # full dataset
     ├── focused-analysis
-    │   ├── overall-report.md # subset
-    │   └── textual-report.md # subset
+    │   ├── overall-report.md # US & UK
+    │   └── textual-report.md # US & UK
     └── topic-modeling
-        └── modeling-report.md # structural topic models
+        └── modeling-report.md # stm
 ```
 
 ## Links
