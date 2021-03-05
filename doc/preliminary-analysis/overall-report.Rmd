@@ -17,12 +17,7 @@ This notebook aims to explore the #zerowaste data and provide a reader with seve
 ## Housekeepin'
 
 ```{r setup, include=F}
-to_install = c("data.table", "bit64", "tidyverse", "janitor", "devtools")
-
-for (pi in 1:length(to_install)){
-  if(!to_install[pi] %in% rownames(installed.packages())){
-    install.packages(to_install[pi])}
-}
+knitr::opts_chunk$set(fig.path="img/overall-report/")
 ```
 
 In the opening section, we digest raw CSV files & union them into the resulting `data.frame`. Moreover, we sanitize the column names and present the overall structure of the dataset.

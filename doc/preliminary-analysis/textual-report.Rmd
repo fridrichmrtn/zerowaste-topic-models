@@ -23,13 +23,7 @@ This document presents textual aspects of #zerowaste tweets. Again, the analysis
 ## Housekeepin'
 
 ```{r setup, include=FALSE}
-to_install = c("data.table", "bit64", "tidyverse", "quanteda", "udpipe",
-               "stringi", "igraph", "ggraph", "parallel")
-
-for (pi in 1:length(to_install)){
-  if(!to_install[pi] %in% rownames(installed.packages())){
-    install.packages(to_install[pi])}
-}
+knitr::opts_chunk$set(fig.path="img/textual-report/")
 ```
 
 In the opening section, we digest raw CSV files & union them into the resulting `data.frame`. Moreover, we sanitize the column names and present the overall structure of the dataset.
