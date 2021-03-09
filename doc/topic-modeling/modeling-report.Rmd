@@ -407,9 +407,9 @@ plot(ee, model=stm_model, topics=1:stm_model$settings$dim$K, method="difference"
   xlab = "diff", cex.main=0.8, cex.axis=0.8, cex.lab=0.8)
 ```
 
-In the chart above, one can see the expected difference between factor prevalence in the US & UK. There are outlying cluster topics popular in the UK on the bottom left corner of the plot (`T7`, `T8`). We can see the subject more relevant for the US (`T1`).
+In the chart above, one can see the expected difference between factor prevalence in the US & UK. There are outlying cluster topics popular in the UK on the bottom left corner of the plot (`T7`, `T8`).On the other hand,  we can see the subject more relevant for the US in the upper right corner (`T1`).
 
-We are interested in changes in topic proportions over time to reflect that we assume a linear relationship between the variables such as `prevalence ~ year + state + state*year`; interaction allows for unparalleled line fits.
+We are interested in changes in topic proportions over time. To reflect on that, we assume a linear relationship between the variables such as `prevalence ~ year + state + state*year`; the interaction allows for unparalleled line fits.
 
 ```{r linear_trends, fig.width=8, fig.height=16, fig.align="center"}
 # trends
