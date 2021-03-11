@@ -20,7 +20,8 @@ for (n in n_topics){
                   prevalence=~year+state+year*state, verbose=F, K=n)
   
   # init dir
-  export_dir = paste0("data//model-perspective//",n,"-topics//")
+  export_dir = paste0("data//model-perspective//",
+    stringi::stri_pad_left(1,width=nchar(max(n_topics)),pad="0"),"-topics//")
   dir.create(export_dir, recursive=T, showWarnings = F)
   
   # sink model info
