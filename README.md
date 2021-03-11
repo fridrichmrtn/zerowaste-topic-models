@@ -12,6 +12,8 @@ The project's main scope is to examine, describe & understand exciting latent fa
     │   └── textual-report.md # US & UK
     └── topic-modeling
         └── modeling-report.md # stm
+├──data
+    └── model-perspective # export        
 ```
 
 ## Links
@@ -19,3 +21,6 @@ The project's main scope is to examine, describe & understand exciting latent fa
  * [/doc/focused-analysis/overall-report.md](/doc/focused-analysis/overall-report.md)
  * [/doc/focused-analysis/textual-report.md](/doc/focused-analysis/textual-report.md)
  * [/doc/topic-modeling/modeling-report.md](/doc/topic-modeling/modeling-report.md)
+ * [/data/model-perspective/](/data/model-perspective/)  
+
+ 
