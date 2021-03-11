@@ -355,7 +355,7 @@ plot(stm_model, type='summary', labeltype='prob', main="top topics",
   cex.main=0.8, n=5)
 ```
 
-There are, however, various techniques to identify exciting tokens within a latent factor Besides the observed probability, we include `frex`, `lift`, and `score` indicators to get descriptive lemmas (see the [vignette](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)).
+There are, however, various techniques to identify exciting tokens within a latent factor. Besides the observed probability, we include `frex`, `lift`, and `score` indicators to get descriptive lemmas (see the [vignette](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)).
 
 ```{r topic_labeling, fig.width=8, fig.height=25, fig.align="center"}
 par(mfrow=c(4,1), mar=c(1,1,1,1))
